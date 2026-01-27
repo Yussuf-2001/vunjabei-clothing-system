@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Sale</title>
+    <style>body{font-family:Arial;padding:20px;background:#f4f4f4}.btn{background:#007bff;color:#fff;padding:8px 12px;border-radius:4px;text-decoration:none}</style>
+</head>
+<body>
+    <a href="{% url 'sales' %}">Back to sales</a>
+    <h1>Create Sale</h1>
+    {% if messages %}
+      {% for m in messages %}<div class="message">{{ m }}</div>{% endfor %}
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <p><label>Customer:<br>
+            <select name="customer">
+                <option value="">-- Walk-in / None --</option>
+                {% for c in customers %}
+                <option value="{{ c.id }}">{{ c.name }} - {{ c.phone }}</option>
+                {% endfor %}
+            </select>
+        </label></p>
+        <p><button type="submit" class="btn">Create Sale</button></p>
+    </form>
+</body>
+</html>

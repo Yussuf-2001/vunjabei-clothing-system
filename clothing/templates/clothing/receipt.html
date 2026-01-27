@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Receipt - Sale #{{ sale.id }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Courier New', monospace; background: #1fc773; padding: 20px; }
+        .receipt { 
+            width: 400px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 20px; 
+            border: 1px solid #16a83b;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px dashed #333; padding-bottom: 10px; }
+        .header h1 { font-size: 20px; margin-bottom: 5px; }
+        .header p { font-size: 12px; color: #b61d64; }
+        .info { font-size: 13px; margin-bottom: 15px; }
+        .info p { margin: 5px 0; }
+        table { width: 100%; font-size: 12px; margin-bottom: 15px; border-collapse: collapse; }
+        th { background: #c01f1f; padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+        td { padding: 8px; border-bottom: 1px solid #ddd; }
+        .total-section { border-top: 2px dashed #20d629; padding-top: 10px; margin-top: 10px; }
+        .total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin: 10px 0; }
+        .footer { text-align: center; margin-top: 20px; font-size: 11px; color: #666; border-top: 2px dashed #333; padding-top: 10px; }
+        .print-btn { display: block; width: 100%; padding: 10px; background: #333; color: white; border: none; cursor: pointer; font-size: 14px; margin-top: 20px; border-radius: 3px; }
+        .print-btn:hover { background: #2b12b9; }
+        @media print {
+            body { background: white; }
+            .receipt { box-shadow: none; border: none; width: 100%; }
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt">
+        <div class="header">
+            <h1>CLOTHING STORE</h1>
+            <p>Receipt</p>
+        </div>
+
+        <div class="info">
+            <p><strong>Sale ID:</strong> #{{ sale.id }}</p>
+            <p><strong>Date:</strong> {{ sale.date|date:"d/m/Y H:i" }}</p>
+            <p><strong>Customer:</strong> {{ sale.customer.name|default:"Walk-in Customer" }}</p>
+            {% if sale.customer.phone %}
+                <p><strong>Phone:</strong> {{ sale.customer.phone }}</p>
+            {% endif %}
+            <p><strong>Salesperson:</strong> {{ sale.user.get_full_name|default:sale.user.username }}</p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in sale.items.all %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.price }}</td>
+                        <td>{{ item.get_total }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="total-section">
+            <div class="total-row">
+                <span>SUBTOTAL:</span>
+                <span>{{ sale.total_amount }} TSH</span>
+            </div>
+            <div class="total-row" style="font-size: 16px; border-top: 1px solid #333; padding-top: 10px; margin-top: 10px;">
+                <span>TOTAL:</span>
+                <span>{{ sale.total_amount }} TSH</span>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Thank you for shopping with us!</p>
+            <p>{{ "now"|date:"d/m/Y H:i:s" }}</p>
+        </div>
+
+        <button class="print-btn" onclick="window.print()">🖨 Print Receipt</button>
+    </div>
+</body>
+</html>

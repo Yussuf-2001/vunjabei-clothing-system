@@ -1,0 +1,24 @@
+{% extends 'clothing/base.html' %}
+{% block title %}Sales{% endblock %}
+{% block content %}
+    <p><a href="{% url 'sale_create' %}" class="btn">New Sale</a></p>
+    <h2>Sales</h2>
+    {% if sales %}
+        <table style="width:100%;border-collapse:collapse;background:#fff">
+            <thead><tr><th style="background:#333;color:#fff;padding:8px">ID</th><th style="background:#333;color:#fff;padding:8px">Customer</th><th style="background:#333;color:#fff;padding:8px">Total</th><th style="background:#333;color:#fff;padding:8px">Date</th><th style="background:#333;color:#fff;padding:8px">Actions</th></tr></thead>
+            <tbody>
+                {% for s in sales %}
+                    <tr>
+                        <td style="padding:8px">{{ s.id }}</td>
+                        <td style="padding:8px">{% if s.customer %}{{ s.customer.name }}{% else %}&mdash;{% endif %}</td>
+                        <td style="padding:8px">{{ s.total_amount }}</td>
+                        <td style="padding:8px">{{ s.date }}</td>
+                        <td style="padding:8px"><a href="{% url 'sale_detail' s.pk %}">View</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No sales yet.</p>
+    {% endif %}
+{% endblock %}

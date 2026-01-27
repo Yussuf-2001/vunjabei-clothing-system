@@ -1,0 +1,18 @@
+{% extends 'clothing/base.html' %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+    <p><a href="{% url 'customer_create' %}">New Customer</a></p>
+    <h2>Customers</h2>
+    {% if customers %}
+        <table style="width:100%;border-collapse:collapse;background:#fff">
+            <thead><tr><th style="background:#333;color:#fff;padding:8px">Name</th><th style="background:#333;color:#fff;padding:8px">Phone</th><th style="background:#333;color:#fff;padding:8px">Address</th></tr></thead>
+            <tbody>
+                {% for c in customers %}
+                    <tr><td style="padding:8px">{{ c.name }}</td><td style="padding:8px">{{ c.phone }}</td><td style="padding:8px">{{ c.address }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No customers yet. <a href="{% url 'customer_create' %}">Add one</a></p>
+    {% endif %}
+{% endblock %}

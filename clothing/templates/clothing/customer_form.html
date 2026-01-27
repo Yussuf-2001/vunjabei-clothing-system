@@ -1,0 +1,13 @@
+{% extends 'clothing/base.html' %}
+{% block title %}New Customer{% endblock %}
+{% block content %}
+    <a href="{% url 'customer_list' %}">Back to customers</a>
+    <h2>New Customer</h2>
+    <form method="post">
+        {% csrf_token %}
+        <p><label>Name:<br><input type="text" name="name" required></label></p>
+        <p><label>Phone:<br><input type="text" name="phone"></label></p>
+        <p><label>Address:<br><textarea name="address" rows="3"></textarea></label></p>
+        <p><button class="btn" type="submit">Save</button></p>
+    </form>
+{% endblock %}

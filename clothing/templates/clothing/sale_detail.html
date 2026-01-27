@@ -1,0 +1,41 @@
+{% extends 'clothing/base.html' %}
+{% block title %}Sale {{ sale.id }}{% endblock %}
+{% block content %}
+    <a href="{% url 'sales' %}">Back to sales</a>
+    <h2>Sale {{ sale.id }}</h2>
+    <p>Customer: {% if sale.customer %}{{ sale.customer.name }}{% else %}&mdash;{% endif %}</p>
+    <p>Total: {{ sale.total_amount }}</p>
+
+    <h3>Items</h3>
+    {% if items %}
+        <table style="width:100%;border-collapse:collapse;background:#fff">
+            <thead><tr><th style="background:#333;color:#fff;padding:8px">Product</th><th style="background:#333;color:#fff;padding:8px">Qty</th><th style="background:#333;color:#fff;padding:8px">Price</th><th style="background:#333;color:#fff;padding:8px">Total</th></tr></thead>
+            <tbody>
+                {% for it in items %}
+                    <tr>
+                        <td style="padding:8px">{{ it.product.name }}</td>
+                        <td style="padding:8px">{{ it.quantity }}</td>
+                        <td style="padding:8px">{{ it.price }}</td>
+                        <td style="padding:8px">{{ it.get_total }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No items yet.</p>
+    {% endif %}
+
+    <h3>Add Item</h3>
+    <form method="post">
+        {% csrf_token %}
+        <p><label>Product:<br>
+            <select name="product">
+                {% for p in products %}
+                    <option value="{{ p.id }}">{{ p.name }} ({{ p.quantity }} in stock)</option>
+                {% endfor %}
+            </select>
+        </label></p>
+        <p><label>Quantity:<br><input type="number" name="quantity" value="1" min="1"></label></p>
+        <p><button class="btn" type="submit">Add Item</button></p>
+    </form>
+{% endblock %}
