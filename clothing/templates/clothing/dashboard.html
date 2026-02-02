@@ -6,12 +6,12 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial; background: rgba(73, 190, 19, 0.83); }
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .nav { background: #db0d0d33; color: white; padding: 15px; margin-bottom: 20px; }
+        .nav { background: #b48a30f5; color: white; padding: 15px; margin-bottom: 20px; }
         .nav a { color: white; margin: 0 15px; text-decoration: none; }
         .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(36, 156, 21, 0.1); }
-        .stat-card h3 { color: rgba(6, 39, 18, 0.07); margin-bottom: 10px; }
-        .stat-card .number { font-size: 32px; font-weight: bold; color: #740e0e; }
+        .stat-card { background: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); }
+        .stat-card h3 { color: rgba(1, 3, 2, 0.93); margin-bottom: 10px; }
+        .stat-card .number { font-size: 32px; font-weight: bold; color: #0c0707; }
     </style>
 </head>
 <body>
@@ -21,6 +21,11 @@
         <a href="{% url 'customer_list' %}">Customers</a>
         <a href="{% url 'sales' %}">Sales</a>
         <a href="/admin">Admin</a>
+        <a href="{% url 'profile' %}">Profile</a>
+        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" style="background:none; border:none; color:white; cursor:pointer; font-size:16px; font-family: Arial; margin: 0 15px;">Logout</button>
+        </form>
     </div>
 
     <div class="container">

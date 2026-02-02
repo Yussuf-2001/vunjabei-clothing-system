@@ -1,43 +1,102 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>{% block title %}Clothing Management{% endblock %}</title>
-  <style>
-    body{font-family:Arial,Helvetica,sans-serif;background:#f4f4f4;margin:0;padding:0}
-    .container{max-width:1000px;margin:24px auto;padding:20px;background:#fff;box-shadow:0 0 4px rgba(0,0,0,0.08)}
-    header{margin-bottom:16px}
-    nav a{margin-right:12px;color:#333;text-decoration:none}
-    .messages{margin:12px 0}
-    .message{padding:8px;border-radius:4px;margin-bottom:6px}
-    .message.success{background:#d4edda;color:#155724}
-    .message.error{background:#f8d7da;color:#721c24}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vunjabei Management</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #764ba2;
+            --secondary-color: #667eea;
+        }
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .page-header {
+            margin-bottom: 2rem;
+            color: #343a40;
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+        .table thead th {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        footer {
+            margin-top: auto;
+            background: white;
+            padding: 1.5rem 0;
+            border-top: 1px solid #e9ecef;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1 style="margin:0">Clothing Management</h1>
-      <nav>
-        <a href="{% url 'dashboard' %}">Dashboard</a>
-        <a href="{% url 'product_list' %}">Products</a>
-        <a href="{% url 'customer_list' %}">Customers</a>
-        <a href="{% url 'sales' %}">Sales</a>
-        <a href="{% url 'category_list' %}">Categories</a>
-        <a href="/admin/">Admin</a>
-      </nav>
-    </header>
 
-    <div class="messages">
-      {% if messages %}
-        {% for m in messages %}
-          <div class="message {% if m.tags %}{{ m.tags }}{% endif %}">{{ m }}</div>
-        {% endfor %}
-      {% endif %}
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'dashboard' %}"><i class="fas fa-tshirt me-2"></i>Vunjabei</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'product_list' %}">Products</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'category_list' %}">Categories</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'customer_list' %}">Customers</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'sales' %}">Sales</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
     </div>
 
-    {% block content %}{% endblock %}
-  </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

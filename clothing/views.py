@@ -4,9 +4,15 @@ from rest_framework.response import Response
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login as auth_login, logout
+from django.views.decorators.http import require_http_methods
 from decimal import Decimal
 from django.utils import timezone
-from .models import Product, Customer, Sale, SaleItem, Category
+from django.db.models import Sum
+from django.core.paginator import Paginator
+from .models import Product, Customer, Sale, SaleItem, Category, Order
+from .forms import OrderForm
 from .serializers import (
     CategorySerializer, ProductSerializer, CustomerSerializer,
     SaleSerializer, SaleDetailSerializer, SaleItemSerializer
@@ -73,19 +79,23 @@ class SaleViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def sales_summary(self, request):
         total_sales = Sale.objects.count()
-        total_amount = sum(s.total_amount for s in Sale.objects.all())
-        return Response({'total_sales': total_sales, 'total_amount': float(total_amount)})
+        total_amount = Sale.objects.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+        return Response({'total_sales': total_sales, 'total_amount': float(total_amount or 0)})
 
 
 
 @login_required
 def dashboard(request):
     """Dashboard - Display statistics"""
+    # Redirect non-staff users (Customers) to the product list
+    if not request.user.is_staff:
+        return redirect('product_list')
+
     try:
         total_products = Product.objects.count()
         total_customers = Customer.objects.count()
         total_sales = Sale.objects.count()
-        total_amount = sum(sale.total_amount for sale in Sale.objects.all())
+        total_amount = Sale.objects.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
     except:
         total_products = 0
         total_customers = 0
@@ -93,6 +103,7 @@ def dashboard(request):
         total_amount = 0
     
     recent_sales = Sale.objects.all()[:5]
+    recent_sales = Sale.objects.order_by('-date')[:5]
     
     context = {
         'total_products': total_products,
@@ -113,9 +124,19 @@ def product_list(request):
     category_id = request.GET.get('category')
     if category_id:
         products = products.filter(category_id=category_id)
+        
+    # Search functionality
+    query = request.GET.get('q')
+    if query:
+        products = products.filter(name__icontains=query)
+    
+    # Pagination (Show 12 products per page)
+    paginator = Paginator(products, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     
     context = {
-        'products': products,
+        'products': page_obj,
         'categories': categories,
         'selected_category': category_id,
     }
@@ -126,26 +147,73 @@ def product_list(request):
 def product_create(request):
     """Create new product"""
     if request.method == 'POST':
+        return save_product(request)
+    
+    categories = Category.objects.all()
+    return render(request, 'clothing/product_form.html', {'categories': categories})
+
+def save_product(request, product=None):
+    """Helper to save product (used for create and update)"""
+    try:
         name = request.POST.get('name')
         category_id = request.POST.get('category')
         price = request.POST.get('price')
         quantity = request.POST.get('quantity')
+        image = request.FILES.get('image')
         
-        try:
-            category = Category.objects.get(id=category_id) if category_id else None
+        category = Category.objects.get(id=category_id) if category_id else None
+        
+        # Clean price input (remove commas)
+        price_clean = price.replace(',', '') if price else '0'
+
+        # Validate inputs
+        if float(price_clean) < 0 or int(quantity) < 0:
+            messages.error(request, 'Price and Quantity must be positive!')
+            return render(request, 'clothing/product_form.html', {'categories': Category.objects.all(), 'product': product})
+            
+        if product:
+            # Update existing
+            product.name = name
+            product.category = category
+            product.price = float(price_clean)
+            product.quantity = int(quantity)
+            if image:
+                product.image = image
+            product.save()
+            messages.success(request, 'Product updated successfully!')
+        else:
+            # Create new
             Product.objects.create(
                 name=name,
                 category=category,
-                price=price,
-                quantity=quantity
+                price=float(price_clean),
+                quantity=int(quantity),
+                image=image
             )
             messages.success(request, 'Product created successfully!')
-            return redirect('product_list')
-        except Exception as e:
-            messages.error(request, f'Error: {str(e)}')
-    
+        return redirect('product_list')
+    except Exception as e:
+        messages.error(request, f'Error: {str(e)}')
+        return render(request, 'clothing/product_form.html', {'categories': Category.objects.all(), 'product': product})
+
+@login_required
+def product_update(request, pk):
+    """Edit existing product"""
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        return save_product(request, product)
     categories = Category.objects.all()
-    return render(request, 'clothing/product_form.html', {'categories': categories})
+    return render(request, 'clothing/product_form.html', {'categories': categories, 'product': product})
+
+@login_required
+def product_delete(request, pk):
+    """Delete product"""
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        product.delete()
+        messages.success(request, 'Product deleted successfully.')
+        return redirect('product_list')
+    return render(request, 'clothing/product_confirm_delete.html', {'product': product})
 
 
 @login_required
@@ -235,10 +303,15 @@ def sale_detail(request, pk):
         quantity = request.POST.get('quantity')
         
         try:
+            qty = int(quantity)
+            if qty <= 0:
+                messages.error(request, 'Quantity must be positive!')
+                return redirect('sale_detail', pk=pk)
+
             product = Product.objects.get(id=product_id)
             
             # Check stock
-            if product.quantity < int(quantity):
+            if product.quantity < qty:
                 messages.error(request, 'Insufficient stock!')
                 return redirect('sale_detail', pk=pk)
             
@@ -246,12 +319,12 @@ def sale_detail(request, pk):
             sale_item = SaleItem.objects.create(
                 sale=sale,
                 product=product,
-                quantity=int(quantity),
+                quantity=qty,
                 price=product.price
             )
             
             # Update product quantity
-            product.quantity -= int(quantity)
+            product.quantity -= qty
             product.save()
             
             # Update sale total
@@ -271,3 +344,91 @@ def sale_detail(request, pk):
         'products': products,
     }
     return render(request, 'clothing/sale_detail.html', context)
+
+
+@login_required
+def sale_remove_item(request, sale_id, item_id):
+    """Remove item from sale and restore stock"""
+    sale = get_object_or_404(Sale, pk=sale_id)
+    item = get_object_or_404(SaleItem, pk=item_id, sale=sale)
+    
+    try:
+        # Restore stock
+        product = item.product
+        product.quantity += item.quantity
+        product.save()
+        
+        # Update sale total
+        sale.total_amount -= item.get_total()
+        if sale.total_amount < 0:
+            sale.total_amount = 0
+        sale.save()
+        
+        item.delete()
+        messages.success(request, 'Item removed from sale.')
+    except Exception as e:
+        messages.error(request, f'Error removing item: {str(e)}')
+        
+    return redirect('sale_detail', pk=sale_id)
+
+
+@login_required
+def profile(request):
+    """User profile page"""
+    return render(request, 'clothing/profile.html')
+
+
+def register(request):
+    """Register a new user"""
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            auth_login(request, user)
+            messages.success(request, 'Registration successful!')
+            return redirect('dashboard')
+    else:
+        form = UserCreationForm()
+    return render(request, 'clothing/register.html', {'form': form})
+
+
+@require_http_methods(["GET", "POST"])
+def user_logout(request):
+    """Logout user and redirect to login page"""
+    logout(request)
+    messages.success(request, 'You have been logged out successfully.')
+    return redirect('user_login')
+
+@login_required
+def order_create(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    
+    if request.method == 'POST':
+        form = OrderForm(request.POST)
+        if form.is_valid():
+            order = form.save(commit=False)
+            order.product = product
+            order.user = request.user
+            
+            # Check if enough stock exists
+            if product.quantity >= order.quantity:
+                product.quantity -= order.quantity
+                product.save()
+                order.save()
+                messages.success(request, f'Successfully ordered {product.name}!')
+                return redirect('product_list')
+            else:
+                messages.error(request, 'Not enough stock available.')
+    else:
+        form = OrderForm()
+
+    return render(request, 'clothing/order_form.html', {
+        'form': form,
+        'product': product
+    })
+
+@login_required
+def order_list(request):
+    """List orders placed by the current user"""
+    orders = Order.objects.filter(user=request.user).order_by('-date_ordered')
+    return render(request, 'clothing/order_list.html', {'orders': orders})

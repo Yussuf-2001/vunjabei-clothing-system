@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, Customer, Sale, SaleItem
+from .models import Category, Product, Customer, Sale, SaleItem, Order
 
 
 @admin.register(Category)
@@ -17,7 +17,7 @@ class ProductAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at']
     fieldsets = (
         ('Product Info', {
-            'fields': ('name', 'category', 'price', 'quantity')
+            'fields': ('name', 'category', 'price', 'quantity', 'image')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -80,3 +80,9 @@ class SaleItemAdmin(admin.ModelAdmin):
     def get_total(self, obj):
         return f"${obj.get_total():.2f}"
     get_total.short_description = 'Total'
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['id', 'product', 'user', 'quantity', 'total_price', 'date_ordered']
+    list_filter = ['date_ordered']

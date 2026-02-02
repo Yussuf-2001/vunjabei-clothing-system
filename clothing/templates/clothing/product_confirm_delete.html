@@ -1,0 +1,17 @@
+{% extends 'clothing/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm mx-auto" style="max-width: 500px;">
+        <div class="card-body text-center p-5">
+            <h3 class="text-danger mb-4">Delete Product?</h3>
+            <p class="mb-4">Are you sure you want to delete <strong>"{{ product.name }}"</strong>? This action cannot be undone.</p>
+            <form method="post">
+                {% csrf_token %}
+                <a href="{% url 'product_list' %}" class="btn btn-secondary me-2">Cancel</a>
+                <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
