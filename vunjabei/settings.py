@@ -17,10 +17,6 @@ try:
 except ImportError:
     dj_database_url = None
 
-try:
-    import whitenoise
-except ImportError:
-    whitenoise = None
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,12 +26,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*=v(g(6$us6=c6z^g3+^4npdy55is@9d7tftr7nsabuh70)c37'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-*=v(g(6$us6=c6z^g3+^4npdy55is@9d7tftr7nsabuh70)c37')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost,.onrender.com').split(',')
 
 
 # Application definition
@@ -48,12 +44,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'clothing',
+    'corsheaders',
+    'myapp',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -61,8 +60,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-if whitenoise:
-    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 ROOT_URLCONF = 'vunjabei.urls'
 
@@ -87,18 +84,24 @@ WSGI_APPLICATION = 'vunjabei.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-if dj_database_url:
+# BADILIKO MUHIMU: Mwalimu hataki Embedded DB (SQLite).
+# Hapa tunatumia PostgreSQL pekee. Kwa local tunatumia default, kwa production tunatumia DATABASE_URL.
+
+# Kama project ipo hewani (production), itatumia DATABASE_URL kutoka Render/Heroku.
+if dj_database_url and 'DATABASE_URL' in os.environ:
     DATABASES = {
-        'default': dj_database_url.config(
-            default='sqlite:///' + str(BASE_DIR / 'db.sqlite3'),
-            conn_max_age=600
-        )
+        'default': dj_database_url.config(conn_max_age=600, ssl_require=False)
     }
 else:
+    # Hizi ni settings za kuunganisha na PostgreSQL iliyopo kwenye PC yako (local).
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'vunjabei_db',      # Jina la database yako
+            'USER': 'admin',            # Username wako wa PostgreSQL
+            'PASSWORD': 'admin123',     # Password yako ya PostgreSQL
+            'HOST': 'localhost',        # Acha hivi kama database ipo kwenye PC yako
+            'PORT': '5432',             # Port ya PostgreSQL (default ni 5432)
         }
     }
 
@@ -148,8 +151,14 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-if whitenoise:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Media files (Uploads)
 MEDIA_URL = '/media/'
@@ -170,3 +179,19 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+# CORS Configuration
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True  # Hii ni MUHIMU ili login ifanye kazi
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Anwani ya React development server
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",  # Vite default port
+    "http://127.0.0.1:5173",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://*.onrender.com",
+]

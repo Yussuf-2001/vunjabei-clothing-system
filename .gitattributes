@@ -1,0 +1,13 @@
+# Weka mpangilio wa default
+* text=auto eol=lf
+
+# Hakikisha mafaili ya Windows yanabaki na mpangilio wake
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Hakikisha mafaili ya Linux/Shell yanabaki na mpangilio wake (MUHIMU SANA)
+*.sh text eol=lf
+
+# Weka mafaili ya picha kama binary ili yasibadilishwe
+*.png binary
+*.jpg binary

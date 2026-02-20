@@ -1,0 +1,48 @@
+{% extends 'myapp/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-gray-800">Customers</h1>
+        <a href="{% url 'customer_create' %}" class="btn btn-primary shadow-sm">
+            <i class="fas fa-user-plus fa-sm text-white-50 me-1"></i> Add Customer
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-white">
+            <h6 class="m-0 font-weight-bold text-primary">Customer List</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 table-hover">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 border-0">Name</th>
+                            <th class="border-0">Phone</th>
+                            <th class="border-0">Address</th>
+                            <th class="text-end pe-4 border-0">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customers %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ customer.name }}</td>
+                            <td>{{ customer.phone }}</td>
+                            <td>{{ customer.address }}</td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-light text-secondary" disabled>Edit</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5">No customers found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Vunjabei Management{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Nunito) -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --sidebar-bg: #224abe; /* Rangi mpya ya Vunjabei (Bluu) */
+            --sidebar-hover: #1a3a9c;
+            --bg-light: #f8f9fc;
+        }
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-light);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styling */
+        #sidebar-wrapper {
+            min-height: 100vh;
+            width: 250px;
+            background: linear-gradient(180deg, var(--sidebar-bg) 10%, #152e7d 100%);
+            color: white;
+            position: fixed;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .sidebar-heading {
+            padding: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .list-group-item {
+            background-color: transparent;
+            color: rgba(255,255,255,0.8);
+            border: none;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+        }
+
+        .list-group-item:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .list-group-item.active {
+            background-color: white;
+            color: var(--sidebar-bg);
+            border-radius: 0.5rem;
+            margin: 0 10px;
+        }
+
+        .list-group-item i {
+            width: 25px;
+        }
+
+        /* Content Wrapper */
+        #page-content-wrapper {
+            margin-left: 250px;
+            width: calc(100% - 250px);
+        }
+
+        /* Navbar */
+        .top-navbar {
+            background-color: white;
+            box-shadow: 0 .15rem 1.75rem 0 rgba(58,59,69,.15);
+            padding: 1rem 2rem;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58,59,69,.15);
+            transition: transform 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        .btn-primary {
+            background-color: var(--sidebar-bg);
+            border-color: var(--sidebar-bg);
+        }
+    </style>
+</head>
+<body>
+
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div id="sidebar-wrapper">
+        <div class="sidebar-heading"><i class="fas fa-tshirt me-2"></i>VUNJABEI</div>
+        <div class="list-group list-group-flush mt-3">
+            <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="{% url 'product_list' %}" class="list-group-item list-group-item-action {% if 'product' in request.path %}active{% endif %}">
+                <i class="fas fa-box"></i> Products
+            </a>
+            <a href="{% url 'sale_list' %}" class="list-group-item list-group-item-action {% if 'sales' in request.path %}active{% endif %}">
+                <i class="fas fa-shopping-cart"></i> Sales
+            </a>
+            <a href="{% url 'manage_orders' %}" class="list-group-item list-group-item-action {% if 'manage-orders' in request.path %}active{% endif %}">
+                <i class="fas fa-tasks"></i> Manage Orders
+            </a>
+            <a href="{% url 'customer_list' %}" class="list-group-item list-group-item-action {% if 'customer' in request.path %}active{% endif %}">
+                <i class="fas fa-users"></i> Customers
+            </a>
+            <a href="{% url 'logout' %}" class="list-group-item list-group-item-action text-danger mt-5">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
+        <nav class="navbar navbar-expand-lg navbar-light top-navbar mb-4">
+            <div class="container-fluid">
+                <span class="navbar-text ms-auto fw-bold text-secondary">Welcome, {{ request.user.username|title }}</span>
+            </div>
+        </nav>
+
+        <div class="container-fluid px-4">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

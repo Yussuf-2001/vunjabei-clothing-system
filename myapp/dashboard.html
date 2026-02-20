@@ -1,0 +1,91 @@
+{% extends 'clothing/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h2">Dashboard</h1>
+    <p>Welcome to Vunjabei management system.</p>
+
+    <!-- Stat Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-header">Total Products</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_products }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card text-white bg-success h-100">
+                <div class="card-header">Total Sales</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_sales }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card text-white bg-info h-100">
+                <div class="card-header">Total Customers</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_customers }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card text-white bg-warning h-100">
+                <div class="card-header">Total Orders</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_orders }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card text-white bg-dark h-100">
+                <div class="card-header">Total Revenue</div>
+                <div class="card-body">
+                    <h5 class="card-title">TSh {{ total_amount|floatformat:2 }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Sales -->
+    <div class="card">
+        <div class="card-header">
+            Recent Sales
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Sale ID</th>
+                            <th scope="col">Customer</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Total</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in recent_sales %}
+                        <tr>
+                            <td>{{ sale.id }}</td>
+                            <td>{{ sale.customer.name|default:"Walk-in Customer" }}</td>
+                            <td>{{ sale.date|date:"Y-m-d H:i" }}</td>
+                            <td>TSh {{ sale.total_amount|floatformat:2 }}</td>
+                            <td>
+                                <a href="{% url 'sale_detail' sale.pk %}" class="btn btn-sm btn-info">View</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No recent sales.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
