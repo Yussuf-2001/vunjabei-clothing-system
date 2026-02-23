@@ -1,48 +1,123 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import api from './api';
 
 const Register = () => {
-  const [formData, setFormData] = useState({ username: '', password: '', email: '' });
   const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState('customer');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError('');
+    setSuccess('');
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    axios.post('http://127.0.0.1:8000/api/register/', formData)
-      .then(res => {
-        alert("Registration successful! You can now login.");
-        navigate('/login');
-      })
-      .catch(err => alert("Registration failed. Try another username."));
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const endpoint = role === 'admin' ? 'register-staff/' : 'register/';
+      const response = await api.post(endpoint, { username, email, password });
+      setSuccess(response.data.success || response.data.message || 'Registration successful. Redirecting to login...');
+      setTimeout(() => navigate('/login', { replace: true }), 1200);
+    } catch (requestError) {
+      const data = requestError.response?.data;
+      if (typeof data === 'string') {
+        setError(data);
+      } else if (data?.error) {
+        setError(data.error);
+      } else if (data?.username?.[0]) {
+        setError(data.username[0]);
+      } else {
+        setError('Registration failed. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="col-md-6 offset-md-3 mt-5">
-      <div className="card shadow">
-        <div className="card-header bg-dark text-white">Register - Vunjabei Customer</div>
-        <div className="card-body">
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label>Username</label>
-              <input type="text" name="username" className="form-control" onChange={handleChange} required />
-            </div>
-            <div className="mb-3">
-              <label>Email (Optional)</label>
-              <input type="email" name="email" className="form-control" onChange={handleChange} />
-            </div>
-            <div className="mb-3">
-              <label>Password</label>
-              <input type="password" name="password" className="form-control" onChange={handleChange} required />
-            </div>
-            <button type="submit" className="btn btn-dark w-100">Register</button>
-          </form>
-          <p className="mt-3 text-center">
-            Already have an account? <Link to="/login" className="btn btn-link">Login Here</Link>
-          </p>
+    <div className="row justify-content-center">
+      <div className="col-md-7 col-lg-5">
+        <div className="card shadow-sm">
+          <div className="card-body p-4">
+            <h3 className="card-title mb-3">Create Account</h3>
+            {error && <div className="alert alert-danger">{error}</div>}
+            {success && <div className="alert alert-success">{success}</div>}
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <label className="form-label">Username</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label">Email</label>
+                <input
+                  type="email"
+                  className="form-control"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label">Register As</label>
+                <select
+                  className="form-select"
+                  value={role}
+                  onChange={(event) => setRole(event.target.value)}
+                  required
+                >
+                  <option value="customer">Customer</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              {role === 'admin' && (
+                <div className="alert alert-warning py-2">
+                  This account will be created with admin access.
+                </div>
+              )}
+              <div className="mb-3">
+                <label className="form-label">Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label">Confirm Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  required
+                />
+              </div>
+              <button type="submit" className="btn btn-danger w-100" disabled={loading}>
+                {loading ? 'Creating...' : 'Register'}
+              </button>
+            </form>
+            <p className="mt-3 mb-0 text-muted">
+              Already have an account? <Link to="/login">Login</Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

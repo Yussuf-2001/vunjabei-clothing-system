@@ -1,0 +1,17 @@
+﻿{
+  "venvPath": ".",
+  "venv": "env",
+  "include": [
+    "."
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "frontend/dist",
+    "env"
+  ],
+  "extraPaths": [
+    "."
+  ],
+  "pythonVersion": "3.13"
+}

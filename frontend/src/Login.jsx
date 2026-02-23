@@ -1,55 +1,74 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import api from './api';
 
 const Login = ({ setUser }) => {
-  const [formData, setFormData] = useState({ username: '', password: '' });
-  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError('');
-  };
+    setLoading(true);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError('');
-    axios.post('http://127.0.0.1:8000/api/login/', formData)
-      .then(res => {
-        if (res.data.success) {
-          const userData = res.data;
-          setUser(userData);
-          localStorage.setItem('user', JSON.stringify(userData));
-          navigate('/products');
-        }
-      })
-      .catch(err => {
-        console.error("Login Error:", err);
-        setError("Incorrect username or password");
-      });
+    try {
+      const response = await api.post('login/', { username, password });
+      const loggedUser = {
+        username: response.data.username,
+        is_staff: response.data.is_staff,
+      };
+
+      localStorage.setItem('user', JSON.stringify(loggedUser));
+      setUser(loggedUser);
+      navigate(loggedUser.is_staff ? '/admin' : '/customer', { replace: true });
+    } catch (requestError) {
+      setError(requestError.response?.data?.error || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="col-md-6 offset-md-3 mt-5">
-      <div className="card shadow">
-        <div className="card-header bg-primary text-white">Login - Vunjabei Customer</div>
-        <div className="card-body">
-          {error && <div className="alert alert-danger text-center">{error}</div>}
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label>Username</label>
-              <input type="text" name="username" className="form-control" onChange={handleChange} required />
+    <div className="container">
+      <div className="row justify-content-center">
+        <div className="col-md-6 col-lg-4">
+          <div className="card shadow-sm">
+            <div className="card-body p-4">
+              <h3 className="card-title mb-3">Login</h3>
+              {error && <div className="alert alert-danger">{error}</div>}
+              <form onSubmit={handleSubmit}>
+                <div className="mb-3">
+                  <label className="form-label">Username</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Password</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+                  {loading ? 'Logging in...' : 'Login'}
+                </button>
+              </form>
+              <p className="mt-3 mb-0 text-muted">
+                New user? <Link to="/register">Create account</Link>
+              </p>
             </div>
-            <div className="mb-3">
-              <label>Password</label>
-              <input type="password" name="password" className="form-control" onChange={handleChange} required />
-            </div>
-            <button type="submit" className="btn btn-primary w-100">Login</button>
-          </form>
-          <p className="mt-3 text-center">
-            Don't have an account? <Link to="/register" className="btn btn-link">Register Here</Link>
-          </p>
+          </div>
         </div>
       </div>
     </div>

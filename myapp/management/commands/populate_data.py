@@ -13,11 +13,12 @@ class Command(BaseCommand):
         
         # Create categories
         categories = [
-            # Weka majina ya categories zako mpya hapa ukipenda, au acha wazi
+            # Specific product categories
             'Jackets',
             'Pants',
-            'Accessories',
             'T-Shirts',
+            'Bags',
+            'Headwear',
         ]
         
         category_objects = []
@@ -30,12 +31,12 @@ class Command(BaseCommand):
         # Create products
         products_data = [
             # Weka bidhaa zako mpya hapa kama unataka kuzi-hardcode
-            ('jucket', category_objects[0], Decimal('6000'), 47),
-            ('blue jeans', category_objects[1], Decimal('13000'), 37),
-            ('backpack', category_objects[2], Decimal('14000'), 47),
-            ('T-shirt', category_objects[3], Decimal('5000'), 20),
-            ('trouser', category_objects[1], Decimal('3000'), 12),
-            ('Cap', category_objects[2], Decimal('4000'), 50),
+            ('Jacket', category_objects[0], Decimal('6000'), 47),
+            ('Blue Jeans', category_objects[1], Decimal('13000'), 37),
+            ('Backpack', category_objects[3], Decimal('14000'), 47),
+            ('T-shirt', category_objects[2], Decimal('5000'), 20),
+            ('Trouser', category_objects[1], Decimal('3000'), 12),
+            ('Cap', category_objects[4], Decimal('4000'), 50),
             ('Cargo Pants', category_objects[1], Decimal('15000'), 25),
         ]
         
