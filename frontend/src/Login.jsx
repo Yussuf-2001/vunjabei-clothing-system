@@ -49,6 +49,7 @@ const Login = ({ setUser }) => {
                     onChange={(event) => setUsername(event.target.value)}
                     required
                   />
+                  <small className="text-muted">Username/email is not case-sensitive.</small>
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Password</label>
@@ -59,6 +60,7 @@ const Login = ({ setUser }) => {
                     onChange={(event) => setPassword(event.target.value)}
                     required
                   />
+                  <small className="text-muted">Password is case-sensitive.</small>
                 </div>
                 <button type="submit" className="btn btn-primary w-100" disabled={loading}>
                   {loading ? 'Logging in...' : 'Login'}

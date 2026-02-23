@@ -18,7 +18,7 @@ This system helps a clothing business manage products, customers, and orders usi
 - Includes required project documentation files.
 
 ## 4. Core Features
-- User authentication (customer and admin/staff registration/login)
+- User authentication (customer self-registration/login, admin/staff created by system admin)
 - Product management (CRUD + stock quantity)
 - Customer ordering flow and order history
 - Admin order management and order status updates

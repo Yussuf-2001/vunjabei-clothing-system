@@ -43,6 +43,37 @@ def resolve_request_user(request):
     return User.objects.filter(username__iexact=username).first()
 
 
+def resolve_auth_user(identifier):
+    value = (identifier or '').strip()
+    if not value:
+        return None, None
+
+    # Prefer exact username match first (case-sensitive) to avoid ambiguity
+    exact_username_user = User.objects.filter(username=value).first()
+    if exact_username_user:
+        return exact_username_user, None
+
+    username_matches = User.objects.filter(username__iexact=value).order_by('id')
+    username_count = username_matches.count()
+    if username_count == 1:
+        return username_matches.first(), None
+    if username_count > 1:
+        return None, 'ambiguous_username'
+
+    exact_email_user = User.objects.filter(email=value).first()
+    if exact_email_user:
+        return exact_email_user, None
+
+    email_matches = User.objects.filter(email__iexact=value).order_by('id')
+    email_count = email_matches.count()
+    if email_count == 1:
+        return email_matches.first(), None
+    if email_count > 1:
+        return None, 'ambiguous_email'
+
+    return None, None
+
+
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -250,12 +281,14 @@ def api_register(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     validated_data = serializer.validated_data
-    username = str(validated_data.get('username', '')).strip()
+    username = str(validated_data.get('username', '')).strip().lower()
     email = str(validated_data.get('email', '')).strip()
     password = str(validated_data.get('password', '')).strip()
 
     if not username or not password:
         return Response({'error': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+    if User.objects.filter(username__iexact=username).exists():
+        return Response({'error': 'Username already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
     user = User.objects.create_user(username=username, email=email, password=password)
     Customer.objects.create(name=user.username, email=user.email)
@@ -266,15 +299,19 @@ def api_register(request):
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
-@authentication_classes([])
+@authentication_classes([CsrfExemptSessionAuthentication])
 def api_register_staff(request):
-    username = (request.data.get('username') or '').strip()
+    admin_user = getattr(request, 'user', None)
+    if not admin_user or not admin_user.is_authenticated or not admin_user.is_staff:
+        return Response({'error': 'Only admin can create staff accounts.'}, status=status.HTTP_403_FORBIDDEN)
+
+    username = (request.data.get('username') or '').strip().lower()
     email = (request.data.get('email') or '').strip()
     password = (request.data.get('password') or '').strip()
 
     if not username or not password:
         return Response({'error': 'Username and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
-    if User.objects.filter(username=username).exists():
+    if User.objects.filter(username__iexact=username).exists():
         return Response({'error': 'Username already exists.'}, status=status.HTTP_400_BAD_REQUEST)
 
     user = User.objects.create_user(username=username, email=email, password=password)
@@ -292,13 +329,30 @@ def api_register_staff(request):
 def api_login(request):
     username = (request.data.get('username') or '').strip()
     password = (request.data.get('password') or '').strip()
+    if not username or not password:
+        return Response({'error': 'Username/Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    if not User.objects.filter(username=username).exists():
+    account, auth_error = resolve_auth_user(username)
+    if auth_error == 'ambiguous_username':
+        return Response(
+            {'error': 'Multiple accounts found with similar username case. Use exact username as created in admin.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if auth_error == 'ambiguous_email':
+        return Response(
+            {'error': 'Multiple accounts found with similar email case. Use exact username instead.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if not account:
         return Response({'error': 'User does not exist. Please register first.'}, status=status.HTTP_400_BAD_REQUEST)
+    if not account.is_active:
+        return Response({'error': 'This account is inactive. Contact admin.'}, status=status.HTTP_400_BAD_REQUEST)
+    if not account.has_usable_password():
+        return Response({'error': 'This account has no usable password. Set password from admin panel.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = authenticate(username=username, password=password)
+    user = authenticate(request, username=account.username, password=password)
     if not user:
-        return Response({'error': 'Incorrect password.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Incorrect password. Password is case-sensitive.'}, status=status.HTTP_400_BAD_REQUEST)
 
     auth_login(request, user)
     return Response({'username': user.username, 'is_staff': user.is_staff})

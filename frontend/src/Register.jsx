@@ -8,7 +8,6 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('customer');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -25,8 +24,7 @@ const Register = () => {
 
     setLoading(true);
     try {
-      const endpoint = role === 'admin' ? 'register-staff/' : 'register/';
-      const response = await api.post(endpoint, { username, email, password });
+      const response = await api.post('register/', { username, email, password });
       setSuccess(response.data.success || response.data.message || 'Registration successful. Redirecting to login...');
       setTimeout(() => navigate('/login', { replace: true }), 1200);
     } catch (requestError) {
@@ -60,9 +58,10 @@ const Register = () => {
                   type="text"
                   className="form-control"
                   value={username}
-                  onChange={(event) => setUsername(event.target.value)}
+                  onChange={(event) => setUsername(event.target.value.toLowerCase())}
                   required
                 />
+                <small className="text-muted">Username is saved in lowercase.</small>
               </div>
               <div className="mb-3">
                 <label className="form-label">Email</label>
@@ -73,23 +72,9 @@ const Register = () => {
                   onChange={(event) => setEmail(event.target.value)}
                 />
               </div>
-              <div className="mb-3">
-                <label className="form-label">Register As</label>
-                <select
-                  className="form-select"
-                  value={role}
-                  onChange={(event) => setRole(event.target.value)}
-                  required
-                >
-                  <option value="customer">Customer</option>
-                  <option value="admin">Admin</option>
-                </select>
+              <div className="alert alert-info py-2">
+                This form creates a customer account. Admin/staff accounts are created by system admin.
               </div>
-              {role === 'admin' && (
-                <div className="alert alert-warning py-2">
-                  This account will be created with admin access.
-                </div>
-              )}
               <div className="mb-3">
                 <label className="form-label">Password</label>
                 <input
@@ -99,6 +84,7 @@ const Register = () => {
                   onChange={(event) => setPassword(event.target.value)}
                   required
                 />
+                <small className="text-muted">Password is case-sensitive.</small>
               </div>
               <div className="mb-3">
                 <label className="form-label">Confirm Password</label>
