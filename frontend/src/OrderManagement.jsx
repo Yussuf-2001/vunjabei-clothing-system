@@ -4,25 +4,21 @@ import api from './api';
 const OrderManagement = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const storedUser = (() => {
-    try {
-      return JSON.parse(localStorage.getItem('user') || 'null');
-    } catch {
-      return null;
-    }
-  })();
+  const [error, setError] = useState('');
 
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await api.get('orders/', { params: { username: storedUser?.username } });
-      setOrders(res.data);
+      const res = await api.get('orders/');
+      setOrders(Array.isArray(res.data) ? res.data : []);
+      setError('');
     } catch (error) {
       console.error('Error fetching orders:', error);
+      setOrders([]);
+      setError(error.response?.data?.error || 'Failed to load orders.');
     } finally {
       setLoading(false);
     }
-  }, [storedUser?.username]);
+  }, []);
 
   useEffect(() => {
     fetchOrders();
@@ -30,14 +26,11 @@ const OrderManagement = () => {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      await api.post(`orders/${orderId}/update-status/`, {
-        status: newStatus,
-        username: storedUser?.username,
-      });
+      await api.post(`orders/${orderId}/update-status/`, { status: newStatus });
       setOrders((prev) => prev.map((order) => (order.id === orderId ? { ...order, status: newStatus } : order)));
     } catch (error) {
       console.error('Error updating order status:', error);
-      alert('Failed to update status');
+      alert(error.response?.data?.error || 'Failed to update status');
     }
   };
 
@@ -50,6 +43,7 @@ const OrderManagement = () => {
       <div className="card-header bg-white py-3">
         <h5 className="m-0 fw-bold text-secondary">Order Management</h5>
       </div>
+      {error && <div className="alert alert-danger m-3 mb-0">{error}</div>}
       <div className="card-body p-0">
         <div className="table-responsive">
           <table className="table table-striped table-hover mb-0">
@@ -76,7 +70,7 @@ const OrderManagement = () => {
                   <td>{order.product_name}</td>
                   <td>{order.quantity}</td>
                   <td>{parseFloat(order.total_price).toLocaleString()}</td>
-                  <td>{order.date}</td>
+                  <td>{order.date ? new Date(order.date).toLocaleString() : '-'}</td>
                   <td>
                     <select
                       className={`form-select form-select-sm ${order.status === 'Pending' ? 'border-warning text-warning' : 'border-success text-success'}`}

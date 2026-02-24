@@ -67,6 +67,12 @@ npm install
 npm run dev
 ```
 
+### Quick Start (Windows)
+Use one command to start backend and frontend in separate terminals:
+```powershell
+.\start-dev.ps1
+```
+
 ## 8. Main API Endpoints
 - `GET /api/health/`
 - `POST /api/login/`

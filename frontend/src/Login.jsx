@@ -25,7 +25,11 @@ const Login = ({ setUser }) => {
       setUser(loggedUser);
       navigate(loggedUser.is_staff ? '/admin' : '/customer', { replace: true });
     } catch (requestError) {
-      setError(requestError.response?.data?.error || 'Login failed. Please try again.');
+      if (!requestError.response) {
+        setError('Cannot reach backend API. Ensure backend is running at http://127.0.0.1:8000.');
+      } else {
+        setError(requestError.response?.data?.error || 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -41,12 +45,13 @@ const Login = ({ setUser }) => {
               {error && <div className="alert alert-danger">{error}</div>}
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                  <label className="form-label">Username</label>
+                  <label className="form-label">Username or Email</label>
                   <input
                     type="text"
                     className="form-control"
                     value={username}
                     onChange={(event) => setUsername(event.target.value)}
+                    placeholder="Enter username or email"
                     required
                   />
                   <small className="text-muted">Username/email is not case-sensitive.</small>

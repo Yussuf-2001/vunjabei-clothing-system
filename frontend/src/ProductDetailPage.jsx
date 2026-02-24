@@ -35,8 +35,7 @@ const ProductDetailPage = ({ user }) => {
                 product_id: productId,
                 quantity: Number(quantity),
                 phone: phone,
-                address: address,
-                username: user?.username
+                address: address
             });
             alert('Order placed successfully!');
             navigate('/customer/my-orders');

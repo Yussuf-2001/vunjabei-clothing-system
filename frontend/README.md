@@ -9,6 +9,10 @@ npm run dev
 npm run build
 ```
 
+## Local Development Order
+1. Start backend first (`../manage.py runserver` or `../start-dev.ps1`).
+2. Start frontend (`npm run dev`).
+
 ## Environment Variable
 Create `.env` (or set in hosting platform):
 

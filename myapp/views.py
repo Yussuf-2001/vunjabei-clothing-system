@@ -28,19 +28,12 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
         return
 
 
-def resolve_request_user(request):
-    if getattr(request, 'user', None) and request.user.is_authenticated:
-        return request.user
-
-    username = ''
-    if request.method in {'POST', 'PUT', 'PATCH'}:
-        username = (request.data.get('username') or '').strip()
-    if not username:
-        username = (request.query_params.get('username') or '').strip()
-
-    if not username:
-        return None
-    return User.objects.filter(username__iexact=username).first()
+class IsStaffOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        user = getattr(request, 'user', None)
+        return bool(user and user.is_authenticated and user.is_staff)
 
 
 def resolve_auth_user(identifier):
@@ -77,7 +70,8 @@ def resolve_auth_user(identifier):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [IsStaffOrReadOnly]
     pagination_class = None
 
 
@@ -85,7 +79,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all().select_related('category')
     serializer_class = ProductSerializer
     authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsStaffOrReadOnly]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     @action(detail=False, methods=['get'])
@@ -107,7 +101,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [permissions.IsAdminUser]
 
     @action(detail=False, methods=['get'])
     def search(self, request):
@@ -122,7 +117,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
 class SaleViewSet(viewsets.ModelViewSet):
     queryset = Sale.objects.all().select_related('user', 'customer')
     serializer_class = SaleSerializer
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [permissions.IsAdminUser]
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -144,7 +140,8 @@ class SaleViewSet(viewsets.ModelViewSet):
 
 
 class DashboardStatsView(APIView):
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [CsrfExemptSessionAuthentication]
+    permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
         total_products = Product.objects.count()
@@ -171,12 +168,10 @@ class DashboardStatsView(APIView):
 
 class PlaceOrderView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        user = resolve_request_user(request)
-        if not user:
-            return Response({'error': 'Login required to place order.'}, status=status.HTTP_403_FORBIDDEN)
+        user = request.user
 
         product_id = request.data.get('product_id')
         quantity_raw = request.data.get('quantity', 1)
@@ -225,9 +220,9 @@ def api_health(request):
 
 @api_view(['GET'])
 @authentication_classes([CsrfExemptSessionAuthentication])
-@permission_classes([permissions.AllowAny])
+@permission_classes([permissions.IsAuthenticated])
 def api_orders(request):
-    user = resolve_request_user(request)
+    user = request.user
     if not user or not user.is_staff:
         return Response({'error': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -240,7 +235,7 @@ def api_orders(request):
             'quantity': order.quantity,
             'total_price': float(order.total_price or 0),
             'status': order.status,
-            'date': order.date_ordered.strftime('%Y-%m-%d %H:%M'),
+            'date': order.date_ordered.isoformat(),
             'phone': order.phone,
             'address': order.address,
         }
@@ -251,9 +246,9 @@ def api_orders(request):
 
 @api_view(['POST'])
 @authentication_classes([CsrfExemptSessionAuthentication])
-@permission_classes([permissions.AllowAny])
+@permission_classes([permissions.IsAuthenticated])
 def api_update_order_status(request, pk):
-    user = resolve_request_user(request)
+    user = request.user
     if not user or not user.is_staff:
         return Response({'error': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -298,13 +293,9 @@ def api_register(request):
 
 @csrf_exempt
 @api_view(['POST'])
-@permission_classes([permissions.AllowAny])
 @authentication_classes([CsrfExemptSessionAuthentication])
+@permission_classes([permissions.IsAdminUser])
 def api_register_staff(request):
-    admin_user = getattr(request, 'user', None)
-    if not admin_user or not admin_user.is_authenticated or not admin_user.is_staff:
-        return Response({'error': 'Only admin can create staff accounts.'}, status=status.HTTP_403_FORBIDDEN)
-
     username = (request.data.get('username') or '').strip().lower()
     email = (request.data.get('email') or '').strip()
     password = (request.data.get('password') or '').strip()
@@ -360,11 +351,9 @@ def api_login(request):
 
 @api_view(['GET'])
 @authentication_classes([CsrfExemptSessionAuthentication])
-@permission_classes([permissions.AllowAny])
+@permission_classes([permissions.IsAuthenticated])
 def api_user_orders(request):
-    user = resolve_request_user(request)
-    if not user:
-        return Response({'error': 'Login required.'}, status=status.HTTP_403_FORBIDDEN)
+    user = request.user
 
     orders = Order.objects.filter(user=user).select_related('product').order_by('-date_ordered')
     data = [
@@ -374,7 +363,7 @@ def api_user_orders(request):
             'quantity': order.quantity,
             'total_price': float(order.total_price or 0),
             'status': order.status,
-            'date': order.date_ordered.strftime('%Y-%m-%d %H:%M'),
+            'date': order.date_ordered.isoformat(),
         }
         for order in orders
     ]

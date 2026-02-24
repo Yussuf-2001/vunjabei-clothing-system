@@ -5,6 +5,7 @@ import api from './api';
 const MyOrdersPage = ({ user }) => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -13,11 +14,13 @@ const MyOrdersPage = ({ user }) => {
                 return;
             }
             try {
-                const res = await api.get('my-orders/', { params: { username: user.username } });
+                const res = await api.get('my-orders/');
                 setOrders(res.data);
+                setError('');
                 setLoading(false);
             } catch (error) {
                 console.error("Failed to fetch orders", error);
+                setError(error.response?.data?.error || 'Failed to fetch orders.');
                 setLoading(false);
             }
         };
@@ -29,6 +32,7 @@ const MyOrdersPage = ({ user }) => {
     return (
         <div>
             <h2 className="mb-4">My Order History</h2>
+            {error && <div className="alert alert-danger">{error}</div>}
             {orders.length === 0 ? (
                 <div className="alert alert-info">You have no orders. <Link to="/customer/products">Start shopping!</Link></div>
             ) : (
