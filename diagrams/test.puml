@@ -1,0 +1,10 @@
+@startuml
+title PlantUML Test - Vunjabei
+actor User
+rectangle "System" {
+  usecase "Login" as UC1
+  usecase "View Dashboard" as UC2
+}
+User --> UC1
+User --> UC2
+@enduml

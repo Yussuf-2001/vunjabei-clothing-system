@@ -1,311 +1,247 @@
-﻿# Software Requirements Specification (SRS)
+﻿# SOFTWARE REQUIREMENT SPECIFICATION (SRS)
+## VUNJABEI CLOTHING MANAGEMENT SYSTEM
+### The State University of Zanzibar
 
-## The State University of Zanzibar
-## Vunjabei Clothing Management System
+**Version:** 1.0
+**Status:** Final
+**Date:** 27-02-2026
 
-Student Name: ____________________  
-Student Registration Number: ____________________  
-Course: Cloud Application Development and Deployment Using GitHub  
-Submission Date: ____________________
+**Student Name:** ____________________________
+**Student Registration Number:** ____________________________
 
-## Table of Contents
-1. Software Development Standards  
-2. Introduction  
-3. Project Background  
-4. Project Objective  
-5. Project Scope  
-6. Current System Description  
-7. Proposed System  
-8. System Design  
-9. Process Diagrams  
-10. Use Cases  
-11. Data Models  
-12. Functional Requirements  
-13. Non-Functional Requirements  
-14. Deployment  
-15. Conclusion
+---
 
-## 1. Software Development Standards
-This project follows practical software development standards required by the assignment:
-- Full-stack architecture: Django REST API backend + React frontend.
-- Version control: Git and GitHub with meaningful commit messages.
-- Documentation: README, SRS, deployment report, and assignment checklist.
-- Environment-based configuration using `.env` values.
-- Database standard: PostgreSQL (no embedded SQLite as primary project database).
-- API-first communication between frontend and backend.
-- Role-based access behavior for admin and customer features.
+### **Document Approval**
 
-## 2. Introduction
-The Vunjabei Clothing Management System is a web application that manages clothing products, customer orders, and order tracking. The system is designed for two user groups:
-- Admin users who manage products and orders.
-- Customer users who browse products and place orders.
+| Role | Name | Signature | Date |
+|---|---|---|---|
+| Project Supervisor | | | |
+| Student | | | |
 
-The system was developed to demonstrate cloud application development, GitHub workflow, and deployment skills.
+---
 
-## 3. Project Background
-Small and medium clothing businesses often face challenges in controlling stock, managing customer orders, and tracking order status. Manual methods lead to delays, missing records, and poor visibility.
+## **Table of Contents**
 
-This project solves those problems by providing a centralized, web-based platform where business operations are digitized and easy to monitor.
+**CHAPTER ONE: INTRODUCTION**
+1.1. Introduction
+1.2. Project Background
+1.3. Project Objectives
 
-## 4. Project Objective
-### 4.1 General Objective
-To develop and deploy a functional cloud-ready clothing management system using GitHub-based workflow.
+**CHAPTER TWO: SYSTEM ANALYSIS**
+2.1. Project Scope
+2.2. Current System Description
+2.3. Proposed Solution
 
-### 4.2 Specific Objectives
-- To build a responsive frontend using React.
-- To create backend API services using Django REST Framework.
-- To connect the application to PostgreSQL database.
-- To implement role-based features for admin and customer.
-- To deploy the application using cloud platforms integrated with GitHub.
-- To produce complete project documentation for presentation and submission.
+**CHAPTER THREE: SYSTEM DESIGN**
+3.1. System Architecture
+3.2. Process Flow
+3.3. Use Case Overview
+3.4. Data Model
 
-## 5. Project Scope
-### 5.1 In Scope
-- User registration and login.
-- Admin dashboard with key statistics.
-- Product management (create, read, update, delete).
-- Product browsing for customers.
-- Place order functionality.
-- Customer order history and status tracking.
-- Admin order status updates (Pending, Processing, Shipped, Delivered, Cancelled).
-- GitHub repository management and cloud deployment documentation.
+**CHAPTER FOUR: SYSTEM REQUIREMENTS**
+4.1. Functional Requirements
+4.2. Non-Functional Requirements
 
-### 5.2 Out of Scope
-- Online payment gateway integration.
-- SMS/Email notification service.
-- Multi-vendor marketplace support.
-- Advanced analytics and AI recommendations.
+**CHAPTER FIVE: IMPLEMENTATION AND DEPLOYMENT**
+5.1. Deployment
+5.2. Glossary of Terms
+5.3. References
+5.4. Conclusion
 
-## 6. Current System Description
-Before this solution, clothing business operations are typically handled manually:
-- Product records are stored in notebooks or scattered files.
-- Orders are tracked through calls/chats without status history.
-- Stock updates are inconsistent after sales.
-- Reporting is slow and error-prone.
+---
 
-Limitations of current/manual approach:
-- High risk of data loss and duplicate entries.
-- No centralized access for monitoring.
-- Poor customer experience due to unclear order status.
+## **CHAPTER ONE: INTRODUCTION**
 
-## 7. Proposed System
-The proposed system is a centralized web application with clear separation of responsibilities:
-- React frontend provides user interfaces for admin and customers.
-- Django REST API handles business logic and validation.
-- PostgreSQL stores persistent data reliably.
+### **1.1. Introduction**
 
-Expected improvements:
-- Faster and accurate order processing.
-- Better stock visibility and management.
-- Better customer trust through order status tracking.
-- Easier maintenance and deployment through GitHub workflow.
+This document presents the Software Requirement Specification (SRS) for the Vunjabei Clothing Management System. The purpose of this document is to formally describe the system requirements, operational environment, and constraints in a structured and professional manner. It serves as a reference for development, testing, and deployment of the system.
 
-## 8. System Design
-### 8.1 Architecture Overview
-- Presentation Layer: React (Vite + Bootstrap)
-- Application Layer: Django + Django REST Framework APIs
-- Data Layer: PostgreSQL
+The Vunjabei Clothing Management System is a web-based application designed to automate clothing retail operations. The system provides a centralized digital platform for managing products, inventory, and customer orders. It replaces manual record-keeping methods with a secure, database-driven solution that ensures accuracy, reliability, and efficiency.
 
-### 8.2 User Roles
-- Admin:
-- Manage products.
-- View all orders.
-- Update order statuses.
-- View dashboard stats.
+The system supports two primary user roles: Administrator and Customer. Each role interacts with the system through authenticated access with clearly defined privileges.
 
-- Customer:
-- Register and login.
-- Browse products.
-- Place orders.
-- View personal order history.
+### **1.2. Project Background**
 
-### 8.3 Main Modules
-- Authentication module
-- Product management module
-- Order management module
-- Dashboard/statistics module
-- Deployment/configuration module
+The current operational model at Vunjabei clothing business is fully manual. Sales transactions are recorded in notebooks, stock levels are determined through physical inspection, and customers must visit the shop or communicate by phone to confirm availability.
 
-## 9. Process Diagrams
-### 9.1 Customer Order Process (Text Flow)
-1. Customer logs in.
-2. Customer views product list/details.
-3. Customer selects quantity and submits order.
-4. Backend validates stock and user.
-5. Order is created and product stock is reduced.
-6. Customer views order under "My Orders" with current status.
+This manual approach introduces several operational challenges. Records can be lost or damaged, stock discrepancies occur frequently due to lack of real-time updates, and order tracking is not structured. Additionally, retrieving historical sales data is difficult and time-consuming.
 
-### 9.2 Admin Order Status Process (Text Flow)
-1. Admin logs in.
-2. Admin opens Order Management page.
-3. System displays all orders.
-4. Admin changes status to Processing/Shipped/Delivered/Cancelled.
-5. Backend validates admin permission and updates status.
-6. Updated status is visible to customer.
+To address these limitations, there is a need for a centralized web-based information system that ensures structured data storage, accurate stock tracking, and improved communication between customers and administrators.
 
-### 9.3 Process Diagram (Text)
-```text
-Customer Login
-    |
-    v
-Browse Products -> Select Product & Quantity -> Submit Order
-                                                |
-                                                v
-                                        [Stock Available?]
-                                          /            \
-                                        No              Yes
-                                        |                |
-                                        v                v
-                                Show Error Message   Create Order
-                                                          |
-                                                          v
-                                                    Reduce Stock
-                                                          |
-                                                          v
-                                                    Show My Orders
+### **1.3. Project Objectives**
 
-Admin Login -> Open Order Management -> View Orders -> Update Status -> Saved
-```
+The general objective of this project is to develop a reliable and secure web-based clothing management system that digitizes retail operations without changing the core business workflow.
 
-## 10. Use Cases
-### UC-01: Register User
-- Actor: Customer/Admin
-- Precondition: User is not logged in.
-- Main Flow: Enter credentials and submit registration form.
-- Postcondition: User account is created.
+Specifically, the system aims to:
+*   Enable customers to register, browse products, and place orders remotely.
+*   Allow administrators to manage products, monitor stock levels, and update order statuses efficiently.
+*   Ensure that inventory updates occur automatically whenever an order is placed, thereby maintaining accurate stock records.
 
-### UC-02: Login
-- Actor: Customer/Admin
-- Precondition: User account exists.
-- Main Flow: Enter username/password, system authenticates.
-- Postcondition: User enters role-based dashboard.
+---
 
-### UC-03: Manage Products
-- Actor: Admin
-- Precondition: Admin is authenticated.
-- Main Flow: Create/edit/delete products and upload image.
-- Postcondition: Product catalog is updated.
+## **CHAPTER TWO: SYSTEM ANALYSIS**
 
-### UC-04: Place Order
-- Actor: Customer
-- Precondition: Customer is authenticated and product has stock.
-- Main Flow: Select product, quantity, address/phone, submit order.
-- Postcondition: Order is saved and stock is reduced.
+### **2.1. Project Scope**
 
-### UC-05: Update Order Status
-- Actor: Admin
-- Precondition: Admin is authenticated and order exists.
-- Main Flow: Select order and change status.
-- Postcondition: Order status is updated.
+The system covers two main operational areas based on user roles.
 
-### UC-06: View My Orders
-- Actor: Customer
-- Precondition: Customer is authenticated.
-- Main Flow: Open My Orders page.
-- Postcondition: Customer sees own order history and statuses.
+**The Administrator module** allows authorized staff to:
+*   Log in securely.
+*   Manage products and categories.
+*   Update stock quantities.
+*   View customer orders.
+*   Update order statuses such as Pending, Processing, Shipped, or Delivered.
 
-### 10.1 Use Case Diagram (Text)
-```text
-Actors:
-  - Customer
-  - Admin
+**The Customer module** allows users to:
+*   Register and log in.
+*   Browse available products.
+*   Place orders.
+*   View their order history and current order status.
 
-Customer Use Cases:
-  - Register
-  - Login
-  - Browse Products
-  - Place Order
-  - View My Orders
+The system is web-based and accessible via internet-enabled devices. It does not include online payment processing or multi-branch management in its current version.
 
-Admin Use Cases:
-  - Login
-  - Manage Products
-  - View All Orders
-  - Update Order Status
-  - View Dashboard Stats
-```
+### **2.2. Current System Description**
 
-## 11. Data Models
-### 11.1 Main Entities
-- User (Django auth user)
-- Customer
-- Category
-- Product
-- Order
-- Sale
-- SaleItem
+The existing system is manual and paper-based. When a customer wants to purchase an item, staff manually check availability and record the sale in a notebook. There is no centralized storage of data, and stock updates depend entirely on manual counting.
 
-### 11.2 Key Relationships
-- One Category has many Products.
-- One User can place many Orders.
-- One Product can appear in many Orders.
-- One Sale can contain many SaleItems.
-- One Customer can be linked to many Sales.
+This system lacks automation, is prone to human error, and does not provide customers with independent order tracking. The absence of digital reporting makes business performance analysis difficult.
 
-### 11.3 Important Attributes (Examples)
-- Product: `name`, `category`, `price`, `quantity`, `image`
-- Order: `user`, `product`, `quantity`, `total_price`, `status`, `phone`, `address`, `date_ordered`
+### **2.3. Proposed Solution**
 
-### 11.4 ERD Diagram (Text)
-```text
-CATEGORY (1) --------< (M) PRODUCT (1) --------< (M) ORDER >-------- (1) USER
-                                           \
-                                            \--------< (M) SALE_ITEM >-------- (1) SALE
+The proposed solution is a database-driven web application that centralizes product, user, and order data. The system ensures that all transactions are recorded electronically and stored securely in a relational database.
 
-CUSTOMER (1) --------< (M) SALE >-------- (1) USER
+*   **Automation:** When a customer places an order, the system automatically deducts the ordered quantity from the available stock.
+*   **Real-time Updates:** Administrators can immediately view incoming orders and update their statuses. Customers can log in at any time to check their order progress.
+*   **Security:** The system enforces authentication and role-based access control to protect sensitive information and restrict unauthorized access.
 
-Main Entities:
-- USER(id, username, is_staff)
-- CATEGORY(id, name)
-- PRODUCT(id, name, price, quantity, category_id)
-- ORDER(id, user_id, product_id, quantity, total_price, status, phone, address, date_ordered)
-- CUSTOMER(id, name, phone, email, address)
-- SALE(id, user_id, customer_id, total_amount, date)
-- SALE_ITEM(id, sale_id, product_id, quantity, price)
-```
+---
 
-## 12. Functional Requirements
-- FR-01: System shall allow customer registration.
-- FR-02: System shall allow user login and role detection (admin/customer).
-- FR-03: System shall allow admin to add, update, and delete products.
-- FR-04: System shall display products with category, price, quantity, and image.
-- FR-05: System shall allow customer to place order with quantity, phone, and address.
-- FR-06: System shall validate stock and update inventory after successful order.
-- FR-07: System shall allow customer to view personal order history.
-- FR-08: System shall allow admin to view all orders, update order status, and view dashboard statistics.
+## **CHAPTER THREE: SYSTEM DESIGN**
 
-## 13. Non-Functional Requirements
-- NFR-01 (Usability): Interfaces shall be simple and responsive on modern browsers.
-- NFR-02 (Performance): Common API requests should return within acceptable response time under classroom demo load.
-- NFR-03 (Security): Authentication and role checks shall protect admin operations.
-- NFR-04 (Data Integrity): Order creation shall use transaction-safe updates to avoid stock inconsistency.
-- NFR-05 (Maintainability): Codebase shall maintain clear folder structure for backend and frontend.
-- NFR-06 (Portability): System shall run in local and cloud environments using environment variables.
+### **3.1. System Architecture**
 
-## 14. Deployment
-### 14.1 Deployment Strategy
-- Source code hosted on GitHub (public repository).
-- Backend deployment target: Render.
-- Frontend deployment target: Vercel or Netlify.
-- Optional CI/CD through GitHub Actions.
+The system follows a three-tier architecture consisting of presentation layer (frontend), application layer (backend), and data layer (database). Communication between the frontend and backend is performed through RESTful APIs using standard HTTP methods. The design ensures separation of concerns, maintainability, and scalability.
 
-### 14.2 Required Environment Variables
-- Backend: `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, `DATABASE_URL`
-- Frontend: `VITE_API_BASE_URL`
+### **3.2. Process Flow**
+1.  Customer registers an account.
+2.  Customer logs into the system.
+3.  Customer views available products.
+4.  Customer places an order.
+5.  Order is stored in the database and stock is updated automatically.
+6.  Administrator logs in to view new orders.
+7.  Administrator updates order status.
+8.  Customer views updated order status.
 
-### 14.3 Deployment Deliverables for Assignment
-- GitHub repository link
-- Public live deployment URL
-- Screenshots of commit history
-- Screenshots of running application
-- One-page deployment explanation
+### **3.3. Use Case Overview**
 
-## 15. Conclusion
-The Vunjabei Clothing Management System satisfies the core assignment requirements by combining:
-- Functional full-stack implementation,
-- Proper GitHub workflow,
-- PostgreSQL-based data management,
-- Cloud deployment readiness,
-- Complete supporting documentation.
+| Use Case ID | Use Case Name | Actor |
+|---|---|---|
+| **Administrator Use Cases** | | |
+| UC-01 | Login | Administrator |
+| UC-02 | Add/Update Product | Administrator |
+| UC-03 | View All Orders | Administrator |
+| UC-04 | Update Order Status | Administrator |
+| **Customer Use Cases** | | |
+| UC-05 | Register Account | Customer |
+| UC-06 | Login | Customer |
+| UC-07 | View Products | Customer |
+| UC-08 | Place Order | Customer |
+| UC-09 | View Order History | Customer |
 
-This SRS provides a clear blueprint for development, testing, deployment, and presentation of the project.
+### **3.4. Data Model**
+
+The system database consists of four primary entities: User, Product, Order, and Category.
+
+#### **3.4.1. User Entity**
+| Attribute | Type | Description |
+|---|---|---|
+| id | Integer | Primary Key |
+| username | Varchar | Unique user identifier for login |
+| password | Varchar | Hashed password for security |
+| email | Varchar | User's email address |
+| is_staff | Boolean | Flag to identify administrator roles |
+
+#### **3.4.2. Category Entity**
+| Attribute | Type | Description |
+|---|---|---|
+| id | Integer | Primary Key |
+| name | Varchar | Name of the product category (e.g., "T-Shirts") |
+
+#### **3.4.3. Product Entity**
+| Attribute | Type | Description |
+|---|---|---|
+| id | Integer | Primary Key |
+| name | Varchar | Name of the product |
+| category | ForeignKey | Links to the Category entity |
+| price | Decimal | Unit price of the product |
+| quantity | Integer | Available stock quantity |
+| image | Varchar | URL path to the product image |
+
+#### **3.4.4. Order Entity**
+| Attribute | Type | Description |
+|---|---|---|
+| id | Integer | Primary Key |
+| user | ForeignKey | Links to the User who placed the order |
+| product | ForeignKey | Links to the ordered Product |
+| quantity | Integer | Number of items ordered |
+| total_price | Decimal | Calculated total price for the order |
+| status | Varchar | Current status (e.g., Pending, Shipped) |
+| date_ordered | DateTime | Timestamp when the order was placed |
+
+Primary and foreign key relationships are used to maintain referential integrity. A single user can place multiple orders, and each product belongs to one category.
+
+---
+
+## **CHAPTER FOUR: SYSTEM REQUIREMENTS**
+
+### **4.1. Functional Requirements**
+
+*   The system shall allow customer registration and login.
+*   The system shall allow administrator login with restricted access privileges.
+*   The system shall allow administrators to add, edit, and update products.
+*   The system shall update stock automatically after order placement.
+*   The system shall allow administrators to update order status.
+*   The system shall allow customers to place orders and view their order status.
+*   All transactions shall be stored in the database.
+
+### **4.2. Non-Functional Requirements**
+
+*   **Security:** The system shall ensure security through authentication and controlled access. Passwords shall be stored securely using encryption mechanisms.
+*   **Performance:** The system shall provide acceptable performance with response time within a few seconds under normal usage conditions.
+*   **Reliability:** The system shall ensure reliability by maintaining data consistency and preventing data loss.
+*   **Usability:** The system shall be user-friendly, with a simple and clear interface design.
+*   **Availability:** The system shall be available continuously, subject to hosting service availability.
+
+---
+
+## **CHAPTER FIVE: IMPLEMENTATION AND DEPLOYMENT**
+
+### **5.1. Deployment**
+
+The backend application will be deployed on Render as a web service. The backend is developed using Django REST Framework to expose RESTful APIs.
+
+The frontend interface is developed using React with Vite for build optimization. The system uses PostgreSQL for relational data storage.
+
+During deployment, production settings will be configured, environment variables secured, database migrations executed, and HTTPS enabled to ensure secure communication between users and the server.
+
+### **5.2. Glossary of Terms**
+
+| Term | Definition |
+|---|---|
+| **SRS** | Software Requirement Specification: A formal document describing what a software system will do. |
+| **API** | Application Programming Interface: A set of rules allowing different software applications to communicate with each other. |
+| **RESTful** | Representational State Transfer: An architectural style for designing networked applications. |
+| **CRUD** | Create, Read, Update, Delete: The four basic functions of persistent storage. |
+| **UI** | User Interface: The visual part of an application through which a user interacts. |
+| **Backend** | The server-side of an application that handles logic, database interactions, and APIs. |
+| **Frontend** | The client-side of an application that the user directly interacts with. |
+
+### **5.3. References**
+
+*This section would include references to any standards, books, or other documents used in preparing the SRS.*
+
+### **5.4. Conclusion**
+
+The Vunjabei Clothing Management System provides a structured and centralized solution for managing clothing retail operations digitally. By automating inventory tracking and order management, the system eliminates inefficiencies associated with manual processes.
+
+The technical design ensures security, scalability, and maintainability while preserving the original retail workflow. Upon implementation, the system will improve operational accuracy, enhance customer experience, and support future business growth.

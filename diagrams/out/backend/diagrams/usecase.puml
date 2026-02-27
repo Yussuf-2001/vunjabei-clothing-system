@@ -1,0 +1,50 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam linetype ortho
+skinparam actorStyle stickman
+skinparam rectangle {
+  BackgroundColor #F5F5F5
+  BorderColor #444444
+  RoundCorner 8
+}
+
+actor "Admin" as A
+actor "Student" as S
+
+rectangle "Vunjabei Clothing Management System" as SYS {
+  rectangle "Register" as U1
+  rectangle "Login" as U2
+  rectangle "Browse Products" as U3
+  rectangle "Place Order" as U4
+  rectangle "View My Orders" as U5
+  rectangle "Manage Products" as U6
+  rectangle "View All Orders" as U7
+  rectangle "Update Order Status" as U8
+
+  U1 -[hidden]down- U2
+  U2 -[hidden]down- U3
+  U3 -[hidden]down- U4
+  U4 -[hidden]down- U5
+  U5 -[hidden]down- U6
+  U6 -[hidden]down- U7
+  U7 -[hidden]down- U8
+}
+
+A -[hidden]-> U4
+U4 -[hidden]-> S
+
+A --> U2
+A --> U6
+A --> U7
+A --> U8
+
+S --> U1
+S --> U2
+S --> U3
+S --> U4
+S --> U5
+
+footer Figure 2: Use Case
+@enduml
