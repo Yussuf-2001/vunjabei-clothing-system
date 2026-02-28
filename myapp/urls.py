@@ -1,6 +1,7 @@
-﻿from django.conf import settings
+﻿﻿from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve
 from rest_framework.routers import DefaultRouter
 
 from . import views
@@ -22,6 +23,7 @@ urlpatterns = [
     path('orders/', views.api_orders, name='api_orders'),
     path('orders/<int:pk>/update-status/', views.api_update_order_status, name='api_update_order_status'),
     path('', include(router.urls)),
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
 
 if settings.DEBUG:
