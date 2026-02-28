@@ -38,7 +38,7 @@ const Register = () => {
       } else if (data?.error) {
         setError(data.error);
       } else if (data?.username?.[0]) {
-        setError(data.usernamgit add .e[0]);
+        setError(data.username[0]);
       } else if (data?.email?.[0]) {
         setError(data.email[0]);
       } else if (data?.password?.[0]) {
