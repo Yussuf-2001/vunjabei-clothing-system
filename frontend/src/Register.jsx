@@ -18,25 +18,33 @@ const Register = () => {
     setSuccess('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError('Neno la siri halifanani.');
       return;
     }
 
     setLoading(true);
     try {
       const response = await api.post('register/', { username, email, password });
-      setSuccess(response.data.success || response.data.message || 'Registration successful. Redirecting to login...');
+      setSuccess(response.data.success || response.data.message || 'Usajili umekamilika. Unaelekezwa kuingia...');
       setTimeout(() => navigate('/login', { replace: true }), 1200);
     } catch (requestError) {
+      console.error("Registration Error:", requestError);
       const data = requestError.response?.data;
-      if (typeof data === 'string') {
+
+      if (!requestError.response) {
+        setError('Tatizo la mtandao au Server haipatikani. Tafadhali jaribu tena.');
+      } else if (typeof data === 'string') {
         setError(data);
       } else if (data?.error) {
         setError(data.error);
       } else if (data?.username?.[0]) {
         setError(data.username[0]);
+      } else if (data?.email?.[0]) {
+        setError(data.email[0]);
+      } else if (data?.password?.[0]) {
+        setError(data.password[0]);
       } else {
-        setError('Registration failed. Please try again.');
+        setError('Usajili umeshindikana. Tafadhali jaribu tena.');
       }
     } finally {
       setLoading(false);
@@ -73,7 +81,7 @@ const Register = () => {
                 />
               </div>
               <div className="alert alert-info py-2">
-                This form creates a customer account. Admin/staff accounts are created by system admin.
+                Fomu hii ni kwa ajili ya wateja tu. Akaunti za Admin/Staff zinatengenezwa na System Admin.
               </div>
               <div className="mb-3">
                 <label className="form-label">Password</label>
