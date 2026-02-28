@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+﻿﻿import React, { useEffect, useState } from 'react';
 import api from './api';
 
 const ProductForm = ({ product, onSave, onCancel }) => {
@@ -76,7 +76,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
               </div>
               <div className="mb-3">
                 <label className="form-label">Category</label>
-                <select name="category" value={formData.category} onChange={handleChange} className="form-select" required>
+                <select name="category" value={formData.category} onChange={handleChange} className="form-select">
                   <option value="">Select Category</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
