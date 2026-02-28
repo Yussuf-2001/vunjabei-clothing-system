@@ -18,33 +18,33 @@ const Register = () => {
     setSuccess('');
 
     if (password !== confirmPassword) {
-      setError('Neno la siri halifanani.');
+      setError('Passwords do not match.');
       return;
     }
 
     setLoading(true);
     try {
       const response = await api.post('register/', { username, email, password });
-      setSuccess(response.data.success || response.data.message || 'Usajili umekamilika. Unaelekezwa kuingia...');
+      setSuccess(response.data.success || response.data.message || 'Registration successful. Redirecting to login...');
       setTimeout(() => navigate('/login', { replace: true }), 1200);
     } catch (requestError) {
       console.error("Registration Error:", requestError);
       const data = requestError.response?.data;
 
       if (!requestError.response) {
-        setError('Tatizo la mtandao au Server haipatikani. Tafadhali jaribu tena.');
+        setError('Network error or Server unreachable. Please try again.');
       } else if (typeof data === 'string') {
         setError(data);
       } else if (data?.error) {
         setError(data.error);
       } else if (data?.username?.[0]) {
-        setError(data.username[0]);
+        setError(data.usernamgit add .e[0]);
       } else if (data?.email?.[0]) {
         setError(data.email[0]);
       } else if (data?.password?.[0]) {
         setError(data.password[0]);
       } else {
-        setError('Usajili umeshindikana. Tafadhali jaribu tena.');
+        setError('Registration failed. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -79,9 +79,6 @@ const Register = () => {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                 />
-              </div>
-              <div className="alert alert-info py-2">
-                Fomu hii ni kwa ajili ya wateja tu. Akaunti za Admin/Staff zinatengenezwa na System Admin.
               </div>
               <div className="mb-3">
                 <label className="form-label">Password</label>
