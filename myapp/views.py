@@ -1,4 +1,4 @@
-﻿from django.contrib.auth import authenticate, login as auth_login
+﻿﻿from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Sum
@@ -71,7 +71,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [IsStaffOrReadOnly]
+    permission_classes = [permissions.AllowAny]
     pagination_class = None
 
 
@@ -79,7 +79,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all().select_related('category')
     serializer_class = ProductSerializer
     authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [IsStaffOrReadOnly]
+    permission_classes = [permissions.AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     @action(detail=False, methods=['get'])
