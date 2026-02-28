@@ -82,6 +82,27 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        data = response.data
+        results = data.get('results') if isinstance(data, dict) else data
+
+        if isinstance(results, list):
+            for item in results:
+                if item.get('image'):
+                    item['image'] = request.build_absolute_uri(item['image'])
+        
+        return response
+
+    def retrieve(self, request, *args, **kwargs):
+        response = super().retrieve(request, *args, **kwargs)
+        data = response.data
+        if data.get('image'):
+            data['image'] = request.build_absolute_uri(data['image'])
+        
+        return response
+
+
     @action(detail=False, methods=['get'])
     def by_category(self, request):
         category_id = request.query_params.get('category_id')
