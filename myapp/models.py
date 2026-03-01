@@ -23,7 +23,9 @@ class Category(models.Model):
 # 2. Product Model
 class Product(models.Model):
     name = models.CharField(max_length=200)
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
+    category = models.ForeignKey(
+        Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='products'
+    )
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField(default=0)
     image = models.ImageField(upload_to='product_images/', null=True, blank=True)
@@ -33,6 +35,40 @@ class Product(models.Model):
     class Meta:
         ordering = ['-created_at']
         indexes = [models.Index(fields=['name']), models.Index(fields=['category'])]
+
+    def save(self, *args, **kwargs):
+        """Make sure we never store a full URL in ``image.name``.
+
+        When CloudinaryStorage is enabled the underlying library sometimes
+        returns the *url* instead of the path portion and the field ends up
+        containing a value like:
+
+            https://res.cloudinary.com/…/image/upload/product_images/foo
+
+        The storage backend in turn concatenates ``MEDIA_URL`` with this
+        string, producing a doubled URL which can't be fetched from the
+        browser.  This helper normalizes the name before committing it to the
+        database:
+
+        * strip any occurrence of ``MEDIA_URL`` prefix
+        * if the name still begins with ``http`` cut everything up to the
+          ``/upload/`` section (Cloudinary always exposes the object key after
+          that path)
+        """
+        if self.image and self.image.name:
+            from django.conf import settings
+
+            media = settings.MEDIA_URL or ''
+            if media and self.image.name.startswith(media):
+                self.image.name = self.image.name[len(media) :]
+
+            if self.image.name.startswith('http'):
+                # look for the cloudinary upload divider and keep the part
+                # after it, which is what storage expects as the ``name``.
+                idx = self.image.name.find('/upload/')
+                if idx != -1:
+                    self.image.name = self.image.name[idx + len('/upload/') :]
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

@@ -1,7 +1,9 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
-from rest_framework.test import APIClient
+from django.core.files.base import ContentFile
+from rest_framework.test import APIClient, APIRequestFactory
 from .models import Category, Product
+from .serializers import ProductSerializer
 from decimal import Decimal
 
 class CategoryModelTest(TestCase):
@@ -48,6 +50,60 @@ class ProductModelTest(TestCase):
         self.product.quantity = 5
         self.product.save()
         self.assertTrue(self.product.quantity < 10)
+
+
+class ProductSerializerTest(TestCase):
+    def setUp(self):
+        self.factory = APIRequestFactory()
+        self.category = Category.objects.create(name="Hats")
+        self.product = Product.objects.create(
+            name="Cap",
+            category=self.category,
+            price=Decimal('10.00'),
+            quantity=5,
+        )
+        # put a dummy image file (content doesn't matter)
+        self.product.image.save(
+            'cap.jpg', ContentFile(b'fakeimagecontent'), save=True
+        )
+
+    def test_image_url_serialization(self):
+        """Serializer should return a fully-qualified URL for the image"""
+        request = self.factory.get('/')
+        serializer = ProductSerializer(self.product, context={'request': request})
+        data = serializer.data
+        self.assertIsNotNone(data.get('image'))
+        # should start with either http or https or /media
+        self.assertTrue(
+            data['image'].startswith('http') or data['image'].startswith('/'),
+            f"unexpected image url {data['image']}"
+        )
+
+    def test_serializer_fixes_double_prefix(self):
+        """Even if storage returns a mangled URL, serializer cleans it."""
+        bad_url = 'https:/res.cloudinary.com/foo/image/upload/product_images/x'
+        # monkeypatch the product's url property
+        class Dummy:
+            url = bad_url
+        self.product.image = Dummy()
+        request = self.factory.get('/')
+        data = ProductSerializer(self.product, context={'request': request}).data
+        self.assertEqual(data['image'], 'https://res.cloudinary.com/foo/image/upload/product_images/x')
+
+    def test_save_strips_full_url_from_name(self):
+        """Product.save() removes MEDIA_URL or http prefix from image name."""
+        from django.conf import settings
+        p = Product(
+            name='Foo',
+            category=self.category,
+            price=Decimal('1.00'),
+            quantity=1,
+        )
+        # simulate an incorrectly stored name (full cloudinary url)
+        p.image.name = settings.MEDIA_URL + 'https:/res.cloudinary.com/foo/image/upload/product_images/bar'
+        p.save()
+        self.assertFalse(p.image.name.startswith('http'))
+        self.assertFalse(p.image.name.startswith(settings.MEDIA_URL))
 
 
 class OrderApiAuthTest(TestCase):
