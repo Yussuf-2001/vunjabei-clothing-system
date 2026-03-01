@@ -28,9 +28,9 @@ DEBUG = env_bool('DEBUG', True)
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost,.onrender.com').split(',') if host.strip()]
 
 cloudinary_env = (
-    os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    os.environ.get('CLOUDINARY_API_KEY'),
-    os.environ.get('CLOUDINARY_API_SECRET'),
+    (os.environ.get('CLOUDINARY_CLOUD_NAME') or '').strip(),
+    (os.environ.get('CLOUDINARY_API_KEY') or '').strip(),
+    (os.environ.get('CLOUDINARY_API_SECRET') or '').strip(),
 )
 CLOUDINARY_CONFIGURED = all(cloudinary_env)
 CLOUDINARY_INSTALLED = bool(importlib.util.find_spec('cloudinary_storage')) and bool(importlib.util.find_spec('cloudinary'))
