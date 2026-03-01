@@ -11,24 +11,22 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
-    image = serializers.SerializerMethodField(read_only=False)
 
     class Meta:
         model = Product
         fields = ['id', 'name', 'category', 'category_name', 'price', 'quantity', 'image', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
 
-    def get_image(self, obj):
-        """Return absolute image URL"""
-        if obj.image:
-            image_url = obj.image.url if hasattr(obj.image, 'url') else str(obj.image)
-            # If URL is relative (starts with /), make it absolute
+    def to_representation(self, instance):
+        """Ensure image URL is absolute"""
+        representation = super().to_representation(instance)
+        if representation.get('image'):
+            image_url = representation['image']
             if image_url.startswith('/'):
                 request = self.context.get('request')
                 if request:
-                    return request.build_absolute_uri(image_url)
-            return image_url
-        return None
+                    representation['image'] = request.build_absolute_uri(image_url)
+        return representation
 
 
 class CustomerSerializer(serializers.ModelSerializer):

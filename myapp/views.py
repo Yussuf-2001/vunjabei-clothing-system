@@ -83,77 +83,6 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
-    # helper to normalise image URLs in serializer output
-    def _ensure_absolute_image(self, data):
-        """Convert any `image` fields in the provided serializer data to
-        absolute URLs using the current request. Works with a single dict or a
-        list of dicts."""
-        if isinstance(data, dict):
-            if data.get('image'):
-                data['image'] = self.request.build_absolute_uri(data['image'])
-        elif isinstance(data, list):
-            for item in data:
-                if item.get('image'):
-                    item['image'] = self.request.build_absolute_uri(item['image'])
-        return data
-
-    def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        data = response.data
-        results = data.get('results') if isinstance(data, dict) else data
-        
-        if isinstance(results, list):
-            self._ensure_absolute_image(results)
-        return response
-
-    def retrieve(self, request, *args, **kwargs):
-        response = super().retrieve(request, *args, **kwargs)
-        data = response.data
-        if data.get('image'):
-            data['image'] = request.build_absolute_uri(data['image'])
-        
-        return response
-
-    def create(self, request, *args, **kwargs):
-        # ensure multipart payloads with image files are processed correctly
-        try:
-            response = super().create(request, *args, **kwargs)
-            data = response.data
-            if data.get('image'):
-                response.data['image'] = request.build_absolute_uri(data['image'])
-            return response
-        except Exception as exc:
-            tb = traceback.format_exc()
-            print('Exception in ProductViewSet.create:', exc)
-            print(tb)
-            return Response({'detail': 'Server error during product create', 'error': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def update(self, request, *args, **kwargs):
-        try:
-            response = super().update(request, *args, **kwargs)
-            data = response.data
-            if data.get('image'):
-                response.data['image'] = request.build_absolute_uri(data['image'])
-            return response
-        except Exception as exc:
-            tb = traceback.format_exc()
-            print('Exception in ProductViewSet.update:', exc)
-            print(tb)
-            return Response({'detail': 'Server error during product update', 'error': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    def partial_update(self, request, *args, **kwargs):
-        try:
-            response = super().partial_update(request, *args, **kwargs)
-            data = response.data
-            if data.get('image'):
-                response.data['image'] = request.build_absolute_uri(data['image'])
-            return response
-        except Exception as exc:
-            tb = traceback.format_exc()
-            print('Exception in ProductViewSet.partial_update:', exc)
-            print(tb)
-            return Response({'detail': 'Server error during product partial update', 'error': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
     @action(detail=False, methods=['get'])
     def by_category(self, request):
         category_id = request.query_params.get('category_id')
@@ -161,18 +90,13 @@ class ProductViewSet(viewsets.ModelViewSet):
         if category_id:
             queryset = queryset.filter(category_id=category_id)
         serializer = self.get_serializer(queryset, many=True)
-        data = serializer.data
-        # convert all the urls
-        self._ensure_absolute_image(data)
-        return Response(data)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def low_stock(self, request):
         products = self.queryset.filter(quantity__lt=10)
         serializer = self.get_serializer(products, many=True)
-        data = serializer.data
-        self._ensure_absolute_image(data)
-        return Response(data)
+        return Response(serializer.data)
 
 
 class CustomerViewSet(viewsets.ModelViewSet):

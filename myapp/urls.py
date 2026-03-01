@@ -23,7 +23,6 @@ urlpatterns = [
     path('orders/', views.api_orders, name='api_orders'),
     path('orders/<int:pk>/update-status/', views.api_update_order_status, name='api_update_order_status'),
     path('', include(router.urls)),
-    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
 
 # Serve media files locally in development and when not using remote storage

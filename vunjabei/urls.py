@@ -11,5 +11,5 @@ urlpatterns = [
 ]
 
 # Serve media files in both development and production
-if settings.MEDIA_ROOT:
+if hasattr(settings, 'MEDIA_ROOT') and settings.MEDIA_ROOT:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
