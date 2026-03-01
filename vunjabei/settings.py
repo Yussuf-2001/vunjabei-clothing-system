@@ -140,6 +140,9 @@ else:
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
+    # Ensure media directory exists to prevent 500 errors
+    if not MEDIA_ROOT.exists():
+        MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 
 STORAGES = {
     'default': {
