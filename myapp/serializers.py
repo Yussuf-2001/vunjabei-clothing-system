@@ -20,13 +20,30 @@ class ProductSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         """Ensure image URL is absolute"""
         representation = super().to_representation(instance)
-        request = self.context.get('request')
+        
+        if instance.image:
+            try:
+                # Get URL directly from storage backend (Cloudinary or Local)
+                url = instance.image.url
 
-        # Use request.build_absolute_uri which is robust enough to handle
-        # both full URLs (from Cloudinary) and relative paths (from local storage).
-        if request and representation.get('image'):
-            representation['image'] = request.build_absolute_uri(representation['image'])
-
+                # SAFETY CHECK: If url is just a filename (e.g. "image.png"), prepend /media/
+                if not url.startswith('http') and not url.startswith('/'):
+                    url = f'/media/{url}'
+                
+                # If it's a relative path (local storage), make it absolute
+                if url.startswith('/'):
+                    request = self.context.get('request')
+                    if request:
+                        url = request.build_absolute_uri(url)
+                # If it's external (Cloudinary) but http, force https
+                elif url.startswith('http:'):
+                    url = url.replace('http:', 'https:')
+                
+                representation['image'] = url
+            except Exception:
+                # If URL generation fails (e.g. missing file), return None
+                representation['image'] = None
+                
         return representation
 
 

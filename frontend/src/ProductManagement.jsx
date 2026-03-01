@@ -230,6 +230,7 @@ const ProductManagement = () => {
                     alt={product.name} 
                     className="product-image" 
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                   />
                 ) : (
                   <div className="d-flex align-items-center justify-content-center h-100 text-muted product-image-fallback">
