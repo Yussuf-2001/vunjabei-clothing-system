@@ -11,6 +11,7 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
+import traceback
 
 from .models import Category, Customer, Order, Product, Sale
 from .serializers import (
@@ -115,25 +116,43 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         # ensure multipart payloads with image files are processed correctly
-        response = super().create(request, *args, **kwargs)
-        data = response.data
-        if data.get('image'):
-            response.data['image'] = request.build_absolute_uri(data['image'])
-        return response
+        try:
+            response = super().create(request, *args, **kwargs)
+            data = response.data
+            if data.get('image'):
+                response.data['image'] = request.build_absolute_uri(data['image'])
+            return response
+        except Exception as exc:
+            tb = traceback.format_exc()
+            print('Exception in ProductViewSet.create:', exc)
+            print(tb)
+            return Response({'detail': 'Server error during product create', 'error': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def update(self, request, *args, **kwargs):
-        response = super().update(request, *args, **kwargs)
-        data = response.data
-        if data.get('image'):
-            response.data['image'] = request.build_absolute_uri(data['image'])
-        return response
+        try:
+            response = super().update(request, *args, **kwargs)
+            data = response.data
+            if data.get('image'):
+                response.data['image'] = request.build_absolute_uri(data['image'])
+            return response
+        except Exception as exc:
+            tb = traceback.format_exc()
+            print('Exception in ProductViewSet.update:', exc)
+            print(tb)
+            return Response({'detail': 'Server error during product update', 'error': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def partial_update(self, request, *args, **kwargs):
-        response = super().partial_update(request, *args, **kwargs)
-        data = response.data
-        if data.get('image'):
-            response.data['image'] = request.build_absolute_uri(data['image'])
-        return response
+        try:
+            response = super().partial_update(request, *args, **kwargs)
+            data = response.data
+            if data.get('image'):
+                response.data['image'] = request.build_absolute_uri(data['image'])
+            return response
+        except Exception as exc:
+            tb = traceback.format_exc()
+            print('Exception in ProductViewSet.partial_update:', exc)
+            print(tb)
+            return Response({'detail': 'Server error during product partial update', 'error': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['get'])
     def by_category(self, request):
