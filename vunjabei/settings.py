@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'myapp',
 ]
-if CLOUDINARY_INSTALLED:
+if CLOUDINARY_INSTALLED and CLOUDINARY_CONFIGURED:
     INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
 
 MIDDLEWARE = [
@@ -158,6 +158,20 @@ STORAGES = {
             if WHITENOISE_INSTALLED
             else 'django.contrib.staticfiles.storage.StaticFilesStorage'
         ),
+    },
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
     },
 }
 
