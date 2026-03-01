@@ -130,6 +130,7 @@ if CLOUDINARY_INSTALLED and CLOUDINARY_CONFIGURED:
         'CLOUD_NAME': cloudinary_env[0],
         'API_KEY': cloudinary_env[1],
         'API_SECRET': cloudinary_env[2],
+        'SECURE_URL': True,
     }
 
 # Storage configuration: use Cloudinary if configured, otherwise local filesystem
