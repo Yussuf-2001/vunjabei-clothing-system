@@ -41,9 +41,19 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    setImageFile(file || null);
+
+    // Clean up previous blob URL to prevent memory leaks
+    if (imagePreview && imagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview);
+    }
+
     if (file) {
+      setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
+    } else {
+      // User cancelled file selection, revert to original or clear
+      setImageFile(null);
+      setImagePreview(product ? product.image : null);
     }
   };
 
@@ -99,7 +109,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
                 {imagePreview && (
                   <div className="mt-2">
                     <p className="text-muted small mb-1">Preview:</p>
-                    <img src={imagePreview} alt="Preview" style={{ height: '100px', width: '100%', objectFit: 'contain', borderRadius: '5px', border: '1px solid #ddd', backgroundColor: '#f8fafc' }} />
+                    <img key={imagePreview} src={imagePreview} alt="Preview" style={{ height: '100px', width: '100%', objectFit: 'contain', borderRadius: '5px', border: '1px solid #ddd', backgroundColor: '#f8fafc' }} />
                   </div>
                 )}
               </div>
