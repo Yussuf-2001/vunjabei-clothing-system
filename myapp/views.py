@@ -82,16 +82,27 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
+    # helper to normalise image URLs in serializer output
+    def _ensure_absolute_image(self, data):
+        """Convert any `image` fields in the provided serializer data to
+        absolute URLs using the current request. Works with a single dict or a
+        list of dicts."""
+        if isinstance(data, dict):
+            if data.get('image'):
+                data['image'] = self.request.build_absolute_uri(data['image'])
+        elif isinstance(data, list):
+            for item in data:
+                if item.get('image'):
+                    item['image'] = self.request.build_absolute_uri(item['image'])
+        return data
+
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         data = response.data
         results = data.get('results') if isinstance(data, dict) else data
-
-        if isinstance(results, list):
-            for item in results:
-                if item.get('image'):
-                    item['image'] = request.build_absolute_uri(item['image'])
         
+        if isinstance(results, list):
+            self._ensure_absolute_image(results)
         return response
 
     def retrieve(self, request, *args, **kwargs):
@@ -102,6 +113,27 @@ class ProductViewSet(viewsets.ModelViewSet):
         
         return response
 
+    def create(self, request, *args, **kwargs):
+        # ensure multipart payloads with image files are processed correctly
+        response = super().create(request, *args, **kwargs)
+        data = response.data
+        if data.get('image'):
+            response.data['image'] = request.build_absolute_uri(data['image'])
+        return response
+
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        data = response.data
+        if data.get('image'):
+            response.data['image'] = request.build_absolute_uri(data['image'])
+        return response
+
+    def partial_update(self, request, *args, **kwargs):
+        response = super().partial_update(request, *args, **kwargs)
+        data = response.data
+        if data.get('image'):
+            response.data['image'] = request.build_absolute_uri(data['image'])
+        return response
 
     @action(detail=False, methods=['get'])
     def by_category(self, request):
@@ -110,13 +142,18 @@ class ProductViewSet(viewsets.ModelViewSet):
         if category_id:
             queryset = queryset.filter(category_id=category_id)
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        data = serializer.data
+        # convert all the urls
+        self._ensure_absolute_image(data)
+        return Response(data)
 
     @action(detail=False, methods=['get'])
     def low_stock(self, request):
         products = self.queryset.filter(quantity__lt=10)
         serializer = self.get_serializer(products, many=True)
-        return Response(serializer.data)
+        data = serializer.data
+        self._ensure_absolute_image(data)
+        return Response(data)
 
 
 class CustomerViewSet(viewsets.ModelViewSet):

@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'myapp',
 ]
-if USE_CLOUDINARY:
+if CLOUDINARY_INSTALLED:
     INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
 
 MIDDLEWARE = [
@@ -125,18 +125,27 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
 
-if USE_CLOUDINARY:
+if CLOUDINARY_INSTALLED and CLOUDINARY_CONFIGURED:
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': cloudinary_env[0],
         'API_KEY': cloudinary_env[1],
         'API_SECRET': cloudinary_env[2],
     }
 
+# Storage configuration: use Cloudinary if configured, otherwise local filesystem
+if CLOUDINARY_INSTALLED and CLOUDINARY_CONFIGURED:
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    MEDIA_URL = 'https://res.cloudinary.com/{}/image/upload/'.format(cloudinary_env[0]) if cloudinary_env[0] else '/media/'
+else:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
+
 STORAGES = {
     'default': {
         'BACKEND': (
             'cloudinary_storage.storage.MediaCloudinaryStorage'
-            if USE_CLOUDINARY
+            if (CLOUDINARY_INSTALLED and CLOUDINARY_CONFIGURED)
             else 'django.core.files.storage.FileSystemStorage'
         ),
     },
@@ -148,9 +157,6 @@ STORAGES = {
         ),
     },
 }
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -172,6 +178,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.vercel\.app$",
+    r"^https://.*\.onrender\.com$",
 ]
 
 CORS_ALLOWED_ORIGINS = [

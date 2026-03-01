@@ -26,5 +26,7 @@ urlpatterns = [
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve media files locally in development and when not using remote storage
+if settings.DEBUG or (not hasattr(settings, 'DEFAULT_FILE_STORAGE') or 'FileSystemStorage' in settings.DEFAULT_FILE_STORAGE):
+    if hasattr(settings, 'MEDIA_ROOT'):
+        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
