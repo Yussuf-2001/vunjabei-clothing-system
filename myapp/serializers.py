@@ -24,10 +24,13 @@ class ProductSerializer(serializers.ModelSerializer):
         # Get the full URL directly from the storage backend (Cloudinary or Local)
         if instance.image:
             try:
-                url = instance.image.url
+                url = str(instance.image.url)
                 request = self.context.get('request')
                 # If URL is already absolute (Cloudinary), use it. Otherwise build it (Local).
                 if url.startswith('http'):
+                    # Force HTTPS to prevent mixed content issues (browser blocking http images)
+                    if url.startswith('http:'):
+                        url = url.replace('http:', 'https:')
                     representation['image'] = url
                 elif request:
                     representation['image'] = request.build_absolute_uri(url)

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+﻿﻿import React, { useEffect, useState } from 'react';
 import api from './api';
 
 const ProductForm = ({ product, onSave, onCancel }) => {
@@ -157,7 +157,7 @@ const ProductManagement = () => {
 
   const handleSave = async (productData) => {
     const url = editingProduct ? `products/${editingProduct.id}/` : 'products/';
-    const method = editingProduct ? 'put' : 'post';
+    const method = editingProduct ? 'patch' : 'post';
 
     try {
       await api({ method, url, data: productData });
@@ -213,9 +213,14 @@ const ProductManagement = () => {
         {products.map((product) => (
           <div key={product.id} className="col-6 col-md-4 col-lg-3">
             <div className="card h-100 product-card">
-              <div className="product-media">
+              <div className="product-media" style={{ height: '200px', overflow: 'hidden', backgroundColor: '#f8f9fa' }}>
                 {product.image ? (
-                  <img src={product.image} alt={product.name} className="product-image" />
+                  <img 
+                    src={product.image} 
+                    alt={product.name} 
+                    className="product-image" 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
                 ) : (
                   <div className="d-flex align-items-center justify-content-center h-100 text-muted product-image-fallback">
                     <span>No image</span>
