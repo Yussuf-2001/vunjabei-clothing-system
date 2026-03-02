@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import api from './api';
+import { getImageUrl } from './utils/imageHelper';
 
 const ProductDetailPage = ({ user }) => {
     const { productId } = useParams();
@@ -50,7 +51,7 @@ const ProductDetailPage = ({ user }) => {
         <div className="row g-4">
             <div className="col-md-6">
                 <div className="product-detail-media">
-                    <img src={product.image || '/media/product_images/default-product.svg'} className="product-detail-image" alt={product.name} />
+                    <img src={getImageUrl(product.image)} className="product-detail-image" alt={product.name} />
                 </div>
             </div>
             <div className="col-md-6">

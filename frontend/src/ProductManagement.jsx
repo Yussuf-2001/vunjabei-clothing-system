@@ -1,5 +1,6 @@
 ﻿﻿import React, { useEffect, useState } from 'react';
 import api from './api';
+import { getImageUrl } from './utils/imageHelper';
 
 const ProductForm = ({ product, onSave, onCancel }) => {
   const [formData, setFormData] = useState({ name: '', category: '', price: '', quantity: '' });
@@ -26,7 +27,8 @@ const ProductForm = ({ product, onSave, onCancel }) => {
         price: product.price,
         quantity: product.quantity,
       });
-      setImagePreview(product.image || null);
+      // convert any relative or missing paths
+      setImagePreview(product.image ? getImageUrl(product.image) : null);
     } else {
       setFormData({ name: '', category: '', price: '', quantity: '' });
       setImageFile(null);
@@ -226,7 +228,7 @@ const ProductManagement = () => {
               <div className="product-media" style={{ height: '200px', overflow: 'hidden', backgroundColor: '#f8f9fa' }}>
                 {product.image ? (
                   <img 
-                    src={product.image} 
+                    src={getImageUrl(product.image)} 
                     alt={product.name} 
                     className="product-image" 
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 

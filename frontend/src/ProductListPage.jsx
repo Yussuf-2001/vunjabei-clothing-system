@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from './api';
+import { getImageUrl } from './utils/imageHelper';
 
 const ProductListPage = () => {
     const [products, setProducts] = useState([]);
@@ -31,7 +32,7 @@ const ProductListPage = () => {
                         <div className="card h-100 product-card shadow-sm">
                             <div className="product-media">
                                 <img 
-                                    src={product.image || '/media/product_images/default-product.svg'} 
+                                    src={getImageUrl(product.image)} 
                                     className="product-image" 
                                     alt={product.name} 
                                 />
