@@ -156,10 +156,17 @@ class SaleViewSet(viewsets.ModelViewSet):
 
 class DashboardStatsView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]  # Allow any logged-in user
 
     def get(self, request):
-        # Key Metrics
+        # Check if the user is an admin/staff and route to the correct dashboard
+        if request.user.is_staff:
+            return self.get_admin_dashboard(request)
+        else:
+            return self.get_user_dashboard(request)
+
+    def get_admin_dashboard(self, request):
+        """Returns dashboard data for staff/admin users."""
         total_products = Product.objects.count()
         total_customers = Customer.objects.count()
         today = timezone.now().date()
@@ -196,6 +203,7 @@ class DashboardStatsView(APIView):
         })
 
     def get_user_dashboard(self, request):
+        """Returns dashboard data for regular authenticated users."""
         user = request.user
         user_orders = Order.objects.filter(user=user)
 
@@ -273,12 +281,8 @@ def api_health(request):
 
 @api_view(['GET'])
 @authentication_classes([CsrfExemptSessionAuthentication])
-@permission_classes([permissions.IsAuthenticated])
+@permission_classes([permissions.IsAdminUser])
 def api_orders(request):
-    user = request.user
-    if not user or not user.is_staff:
-        return Response({'error': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
-
     orders = Order.objects.select_related('user', 'product').order_by('-date_ordered')
     data = [
         {
@@ -299,12 +303,8 @@ def api_orders(request):
 
 @api_view(['POST'])
 @authentication_classes([CsrfExemptSessionAuthentication])
-@permission_classes([permissions.IsAuthenticated])
+@permission_classes([permissions.IsAdminUser])
 def api_update_order_status(request, pk):
-    user = request.user
-    if not user or not user.is_staff:
-        return Response({'error': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
-
     order = get_object_or_404(Order, pk=pk)
     new_status = request.data.get('status')
     valid_statuses = {choice[0] for choice in Order.STATUS_CHOICES}
