@@ -159,26 +159,64 @@ class DashboardStatsView(APIView):
     permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
+        # Key Metrics
         total_products = Product.objects.count()
         total_customers = Customer.objects.count()
-
         today = timezone.now().date()
-        today_sales = Sale.objects.filter(date__date=today).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+        today_sales_amount = Sale.objects.filter(date__date=today).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+        pending_orders_count = Order.objects.filter(status='Pending').count()
 
-        low_stock_products = Product.objects.filter(quantity__lt=10)
+        # Summary Cards Data Structure
+        summary_cards = [
+            {'id': 'total_products', 'title': 'Jumla ya Bidhaa', 'value': total_products, 'icon': 'inventory_2'},
+            {'id': 'total_customers', 'title': 'Jumla ya Wateja', 'value': total_customers, 'icon': 'groups'},
+            {'id': 'today_sales', 'title': 'Mauzo ya Leo', 'value': f"{today_sales_amount:,.2f}", 'unit': 'TZS', 'icon': 'point_of_sale'},
+            {'id': 'pending_orders', 'title': 'Oda Mpya', 'value': pending_orders_count, 'icon': 'pending_actions'},
+        ]
+
+        low_stock_products = Product.objects.filter(quantity__lt=10).order_by('quantity')
         low_stock_items = list(low_stock_products.values('id', 'name', 'quantity'))
 
         recent_sales = Sale.objects.select_related('customer').order_by('-date')[:5]
-        recent_sales_data = SaleSerializer(recent_sales, many=True).data
+        recent_sales_data = SaleSerializer(recent_sales, many=True, context={'request': request}).data
+
+        # Data for a simple sales chart (last 7 days)
+        sales_chart_data = []
+        for i in range(7):
+            day = today - timezone.timedelta(days=i)
+            daily_total = Sale.objects.filter(date__date=day).aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+            sales_chart_data.append({'date': day.strftime('%b %d'), 'total': float(daily_total)})
+        sales_chart_data.reverse()  # Order from oldest to newest
 
         return Response({
-            'total_products': total_products,
-            'total_customers': total_customers,
-            'today_sales': float(today_sales),
-            'low_stock_count': low_stock_products.count(),
+            'summary_cards': summary_cards,
             'low_stock_items': low_stock_items,
             'recent_sales': recent_sales_data,
+            'sales_chart_data': sales_chart_data,
         })
+
+    def get_user_dashboard(self, request):
+        user = request.user
+        user_orders = Order.objects.filter(user=user)
+
+        total_orders = user_orders.count()
+        pending_orders = user_orders.filter(status='Pending').count()
+        delivered_orders = user_orders.filter(status='Delivered').count()
+
+        summary_cards = [
+            {'id': 'total_orders', 'title': 'Jumla ya Oda Zangu', 'value': total_orders, 'icon': 'shopping_bag'},
+            {'id': 'pending_orders', 'title': 'Oda Zinazosubiri', 'value': pending_orders, 'icon': 'pending'},
+            {'id': 'delivered_orders', 'title': 'Oda Zilizokamilika', 'value': delivered_orders, 'icon': 'local_shipping'},
+        ]
+
+        recent_orders = user_orders.select_related('product').order_by('-date_ordered')[:5]
+        recent_orders_data = [
+            {'id': order.id, 'product_name': order.product.name, 'status': order.status, 'date': order.date_ordered.strftime('%b %d, %Y')}
+            for order in recent_orders
+        ]
+
+        return Response({'summary_cards': summary_cards, 'recent_orders': recent_orders_data})
+
 
 
 class PlaceOrderView(APIView):
