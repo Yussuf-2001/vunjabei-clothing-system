@@ -55,6 +55,7 @@ class ProductSerializer(serializers.ModelSerializer):
         # 1. If the URL is already absolute (Cloudinary), return it directly
         if url.startswith('http'):
             # Fix malformed https:/ if it occurs
+
             if url.startswith('https:/') and not url.startswith('https://'):
                 url = url.replace('https:/', 'https://', 1)
             return url
@@ -64,6 +65,7 @@ class ProductSerializer(serializers.ModelSerializer):
         from django.conf import settings
         if getattr(settings, 'USE_CLOUDINARY', False):
             cloud_name = settings.CLOUDINARY_STORAGE.get('CLOUD_NAME')
+
             if cloud_name and obj.image.name:
                 # Clean the name to ensure no double slashes
                 image_name = obj.image.name.lstrip('/')
