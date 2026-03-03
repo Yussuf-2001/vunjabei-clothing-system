@@ -310,6 +310,33 @@ def api_register_staff(request):
     return Response({'success': 'Admin registration successful. Please login.'}, status=status.HTTP_201_CREATED)
 
 
+# simple login endpoint for React client
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+@authentication_classes([CsrfExemptSessionAuthentication])
+def api_login(request):
+    # accept username or email for login
+    identifier = (request.data.get('username') or '').strip()
+    password = (request.data.get('password') or '').strip()
+
+    user = None
+    if identifier:
+        # try authenticate directly; if identifier contains '@' maybe it's email
+        user = authenticate(request, username=identifier, password=password)
+        if user is None and '@' in identifier:
+            # try lookup by email since authenticate won't match email automatically
+            from django.contrib.auth.models import User as DjangoUser
+            try:
+                usr = DjangoUser.objects.get(email__iexact=identifier)
+                user = authenticate(request, username=usr.username, password=password)
+            except DjangoUser.DoesNotExist:
+                user = None
+    if user is not None:
+        auth_login(request, user)
+        return Response({'username': user.username, 'is_staff': user.is_staff})
+    return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def api_user_orders(request):

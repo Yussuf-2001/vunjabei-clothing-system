@@ -17,6 +17,7 @@ urlpatterns = [
     path('dashboard-stats/', views.DashboardStatsView.as_view(), name='api_dashboard_stats'),
     path('place-order/', views.PlaceOrderView.as_view(), name='api_place_order'),
     path('register/', views.api_register, name='api_register'),
+    path('login/', views.api_login, name='api_login'),
     path('register-staff/', views.api_register_staff, name='api_register_staff'),
     path('my-orders/', views.api_user_orders, name='api_user_orders'),
     path('orders/', views.api_orders, name='api_orders'),

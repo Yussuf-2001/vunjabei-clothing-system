@@ -158,3 +158,15 @@ class OrderApiAuthTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(isinstance(response.json(), list))
+
+    def test_login_endpoint(self):
+        # create user in setUp
+        resp = self.client.post('/api/login/', {'username': 'customer1', 'password': 'pass12345'}, format='json')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data.get('username'), 'customer1')
+        self.assertFalse(resp.data.get('is_staff'))
+
+        # wrong credentials
+        resp2 = self.client.post('/api/login/', {'username': 'customer1', 'password': 'wrong'}, format='json')
+        self.assertEqual(resp2.status_code, 400)
+        self.assertIn('error', resp2.data)
