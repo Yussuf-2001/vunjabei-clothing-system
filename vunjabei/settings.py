@@ -135,11 +135,12 @@ if CLOUDINARY_INSTALLED and CLOUDINARY_CONFIGURED:
     }
 
 # Storage configuration: use Cloudinary if configured, otherwise local filesystem
+# NOTE: Django 5 warns if DEFAULT_FILE_STORAGE is set while STORAGES is
+# also defined.  We therefore do **not** touch DEFAULT_FILE_STORAGE here
+# and only establish MEDIA_URL (and MEDIA_ROOT for local storage).
 if CLOUDINARY_INSTALLED and CLOUDINARY_CONFIGURED:
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    MEDIA_URL = '/media/'
+    MEDIA_URL = 'https://res.cloudinary.com/{}/image/upload/'.format(cloudinary_env[0])
 else:
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
     # Ensure media directory exists to prevent 500 errors
