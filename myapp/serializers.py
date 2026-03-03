@@ -52,14 +52,25 @@ class ProductSerializer(serializers.ModelSerializer):
         except Exception:
             return None
 
-        # If the URL is already absolute (Cloudinary), return it directly
+        # 1. If the URL is already absolute (Cloudinary), return it directly
         if url.startswith('http'):
             # Fix malformed https:/ if it occurs
             if url.startswith('https:/') and not url.startswith('https://'):
                 url = url.replace('https:/', 'https://', 1)
             return url
 
-        # If it's a relative path (local dev), build absolute URI
+        # 2. SAFETY NET: If we are on Render (USE_CLOUDINARY is True) but got a relative path,
+        # force construct the Cloudinary URL. This fixes the "disappearing image" issue.
+        from django.conf import settings
+        if getattr(settings, 'USE_CLOUDINARY', False):
+            cloud_name = settings.CLOUDINARY_STORAGE.get('CLOUD_NAME')
+            if cloud_name and obj.image.name:
+                # Clean the name to ensure no double slashes
+                image_name = obj.image.name.lstrip('/')
+                return f"https://res.cloudinary.com/{cloud_name}/image/upload/{image_name}"
+
+        # 3. Fallback for Local Development (FileSystemStorage)
+        # If we are here, it means we are truly local, so build a localhost URL.
         request = self.context.get('request')
         if request:
             return request.build_absolute_uri(url)
