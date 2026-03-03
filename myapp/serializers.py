@@ -52,33 +52,18 @@ class ProductSerializer(serializers.ModelSerializer):
         except Exception:
             return None
 
-        # drop accidental MEDIA_URL duplication
-        from django.conf import settings
-
-        media = settings.MEDIA_URL or ''
-        if media and url.startswith(media) and url.count(media) > 1:
-            # take the last occurrence and re‑prefix correctly
-            url = media + url.split(media)[-1].lstrip('/')
-
-        # fix missing slash after scheme
-        if url.startswith('https:/') and not url.startswith('https://'):
-            url = url.replace('https:/', 'https://', 1)
-
-        request = self.context.get('request')
-        if request:
-            # only call build_absolute_uri for truly relative paths
-            if not url.startswith('http'):
-                return request.build_absolute_uri(url)
+        # If the URL is already absolute (Cloudinary), return it directly
+        if url.startswith('http'):
+            # Fix malformed https:/ if it occurs
+            if url.startswith('https:/') and not url.startswith('https://'):
+                url = url.replace('https:/', 'https://', 1)
             return url
 
-        # no request available – mimic DRF's normal behaviour
-        if not url.startswith('http'):
-            if media.endswith('/') and url.startswith('/'):
-                url = url[1:]
-            url = media + url.lstrip('/')
-        elif url.startswith('http:'):
-            url = url.replace('http:', 'https:')
-
+        # If it's a relative path (local dev), build absolute URI
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(url)
+        
         return url
 
 
