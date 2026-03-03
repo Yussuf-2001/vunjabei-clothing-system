@@ -313,7 +313,6 @@ def api_register_staff(request):
 # simple login endpoint for React client
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
-@authentication_classes([CsrfExemptSessionAuthentication])
 def api_login(request):
     # accept username or email for login
     identifier = (request.data.get('username') or '').strip()
