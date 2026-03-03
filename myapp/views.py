@@ -229,9 +229,14 @@ class DashboardStatsView(APIView):
 
 class PlaceOrderView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request):
+        # Manual check to see if session cookie was received
+        if not request.user.is_authenticated:
+            print(f"DEBUG: PlaceOrder failed. User is Anonymous. Headers: {request.headers}")
+            return Response({'error': 'Authentication failed. Session cookie missing. Check browser 3rd-party cookie settings.'}, status=status.HTTP_403_FORBIDDEN)
+
         user = request.user
 
         product_id = request.data.get('product_id')
