@@ -18,7 +18,6 @@ urlpatterns = [
     path('place-order/', views.PlaceOrderView.as_view(), name='api_place_order'),
     path('register/', views.api_register, name='api_register'),
     path('register-staff/', views.api_register_staff, name='api_register_staff'),
-    path('login/', views.api_login, name='api_login'),
     path('my-orders/', views.api_user_orders, name='api_user_orders'),
     path('orders/', views.api_orders, name='api_orders'),
     path('orders/<int:pk>/update-status/', views.api_update_order_status, name='api_update_order_status'),

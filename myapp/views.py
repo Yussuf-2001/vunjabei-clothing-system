@@ -4,7 +4,6 @@ from django.db import transaction
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework import permissions, status, viewsets
@@ -24,54 +23,9 @@ from .serializers import (
 )
 
 
-class CsrfExemptSessionAuthentication(SessionAuthentication):
-    def enforce_csrf(self, request):
-        return
-
-
-class IsStaffOrReadOnly(permissions.BasePermission):
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        user = getattr(request, 'user', None)
-        return bool(user and user.is_authenticated and user.is_staff)
-
-
-def resolve_auth_user(identifier):
-    value = (identifier or '').strip()
-    if not value:
-        return None, None
-
-    # Prefer exact username match first (case-sensitive) to avoid ambiguity
-    exact_username_user = User.objects.filter(username=value).first()
-    if exact_username_user:
-        return exact_username_user, None
-
-    username_matches = User.objects.filter(username__iexact=value).order_by('id')
-    username_count = username_matches.count()
-    if username_count == 1:
-        return username_matches.first(), None
-    if username_count > 1:
-        return None, 'ambiguous_username'
-
-    exact_email_user = User.objects.filter(email=value).first()
-    if exact_email_user:
-        return exact_email_user, None
-
-    email_matches = User.objects.filter(email__iexact=value).order_by('id')
-    email_count = email_matches.count()
-    if email_count == 1:
-        return email_matches.first(), None
-    if email_count > 1:
-        return None, 'ambiguous_email'
-
-    return None, None
-
-
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [permissions.AllowAny]
     pagination_class = None
 
@@ -79,7 +33,6 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all().select_related('category')
     serializer_class = ProductSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [permissions.AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
@@ -116,7 +69,6 @@ class ProductViewSet(viewsets.ModelViewSet):
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [permissions.IsAdminUser]
 
     @action(detail=False, methods=['get'])
@@ -132,7 +84,6 @@ class CustomerViewSet(viewsets.ModelViewSet):
 class SaleViewSet(viewsets.ModelViewSet):
     queryset = Sale.objects.all().select_related('user', 'customer')
     serializer_class = SaleSerializer
-    authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [permissions.IsAdminUser]
 
     def get_serializer_class(self):
@@ -155,8 +106,7 @@ class SaleViewSet(viewsets.ModelViewSet):
 
 
 class DashboardStatsView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [permissions.IsAuthenticated]  # Allow any logged-in user
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
         # Check if the user is an admin/staff and route to the correct dashboard
@@ -228,15 +178,9 @@ class DashboardStatsView(APIView):
 
 
 class PlaceOrderView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        # Manual check to see if session cookie was received
-        if not request.user.is_authenticated:
-            print(f"DEBUG: PlaceOrder failed. User is Anonymous. Headers: {request.headers}")
-            return Response({'error': 'Authentication failed. Session cookie missing. Check browser 3rd-party cookie settings.'}, status=status.HTTP_403_FORBIDDEN)
-
         user = request.user
 
         product_id = request.data.get('product_id')
@@ -285,7 +229,6 @@ def api_health(request):
 
 
 @api_view(['GET'])
-@authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([permissions.IsAdminUser])
 def api_orders(request):
     orders = Order.objects.select_related('user', 'product').order_by('-date_ordered')
@@ -307,7 +250,6 @@ def api_orders(request):
 
 
 @api_view(['POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([permissions.IsAdminUser])
 def api_update_order_status(request, pk):
     order = get_object_or_404(Order, pk=pk)
@@ -324,7 +266,6 @@ def api_update_order_status(request, pk):
     return Response({'message': 'Status updated successfully.'})
 
 
-@csrf_exempt
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 @authentication_classes([])
@@ -349,9 +290,7 @@ def api_register(request):
     return Response({'success': 'Registration successful. Please login.'}, status=status.HTTP_201_CREATED)
 
 
-@csrf_exempt
 @api_view(['POST'])
-@authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([permissions.IsAdminUser])
 def api_register_staff(request):
     username = (request.data.get('username') or '').strip().lower()
@@ -371,44 +310,7 @@ def api_register_staff(request):
     return Response({'success': 'Admin registration successful. Please login.'}, status=status.HTTP_201_CREATED)
 
 
-@csrf_exempt
-@api_view(['POST'])
-@permission_classes([permissions.AllowAny])
-@authentication_classes([])
-def api_login(request):
-    username = (request.data.get('username') or '').strip()
-    password = (request.data.get('password') or '').strip()
-    if not username or not password:
-        return Response({'error': 'Username/Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    account, auth_error = resolve_auth_user(username)
-    if auth_error == 'ambiguous_username':
-        return Response(
-            {'error': 'Multiple accounts found with similar username case. Use exact username as created in admin.'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    if auth_error == 'ambiguous_email':
-        return Response(
-            {'error': 'Multiple accounts found with similar email case. Use exact username instead.'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    if not account:
-        return Response({'error': 'User does not exist. Please register first.'}, status=status.HTTP_400_BAD_REQUEST)
-    if not account.is_active:
-        return Response({'error': 'This account is inactive. Contact admin.'}, status=status.HTTP_400_BAD_REQUEST)
-    if not account.has_usable_password():
-        return Response({'error': 'This account has no usable password. Set password from admin panel.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    user = authenticate(request, username=account.username, password=password)
-    if not user:
-        return Response({'error': 'Incorrect password. Password is case-sensitive.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    auth_login(request, user)
-    return Response({'username': user.username, 'is_staff': user.is_staff})
-
-
 @api_view(['GET'])
-@authentication_classes([CsrfExemptSessionAuthentication])
 @permission_classes([permissions.IsAuthenticated])
 def api_user_orders(request):
     user = request.user
